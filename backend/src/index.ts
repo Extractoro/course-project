@@ -42,7 +42,6 @@ app.use('/auth', authRouter)
 //     })
 // })
 
-app.use(authMiddleware)
 
 app.get('/users/:id', (req: Request, res: Response) => {
     database.getConnection(function(err, connection) {
