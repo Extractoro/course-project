@@ -1,8 +1,11 @@
 import express, {Request, Response} from "express"
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import database from "../utils/database";
 import controllersWrapper from "../helpers/controllersWrapper";
-import bcrypt from "bcrypt";
 
+dotenv.config();
 const router = express.Router();
 
 router.post('/registration', controllersWrapper((req: Request, res: Response) => {
@@ -41,7 +44,7 @@ router.post('/registration', controllersWrapper((req: Request, res: Response) =>
 }))
 
 router.post('/login', controllersWrapper((req: Request, res: Response) => {
-    database.getConnection(async function(err, connection) {
+    database.getConnection( function(err, connection) {
         if (err) {
             console.log(err);
             return res.status(500).send({
@@ -51,12 +54,10 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
             })
         }
 
-        let sqlQuery = `CALL registrationUser(?, ?, ?, ?, ?)`;
-        const {firstName, lastName, email, password, phone} = req.body
+        let sqlQuery = `SELECT user_firstname, user_lastname, email, password FROM users WHERE email = ?`;
+        const {email, password} = req.body
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        connection.query(sqlQuery, [firstName, lastName, email, hashedPassword, phone || null],function (err, results) {
+        connection.query(sqlQuery, [email], function (err, rows) {
             if (err) {
                 connection.release();
                 return res.status(400).send({
@@ -66,10 +67,32 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
                 })
             }
 
-            res.status(200).send({
-                status: 200,
-                success: true,
-                message: 'User successfully registered',
+            const { user_firstname, user_lastname, email } = rows[0];
+            const hash = rows[0].password;
+
+            bcrypt.compare(password, hash, (err, result) => {
+                if (err) {
+                    return res.status(500).send({
+                        status: 500,
+                        success: false,
+                        message: err.message,
+                    })
+                }
+
+                if (result) {
+                    res.status(200).send({
+                        status: 200,
+                        success: true,
+                        message: 'Success',
+                        results: { token: jwt.sign({user_firstname, user_lastname, email}, process.env.JWT_SECRET as string, { expiresIn: process.env.EXPIRESIN }) }
+                    })
+                } else {
+                    return res.status(500).send({
+                        status: 500,
+                        success: false,
+                        message: err,
+                    })
+                }
             })
         })
     })
