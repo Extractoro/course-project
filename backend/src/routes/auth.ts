@@ -8,6 +8,7 @@ import sgMail from "@sendgrid/mail";
 import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from 'uuid';
 import transporter from "../utils/emailSender";
+import authMiddleware from "../middlewares/authMiddleware";
 
 dotenv.config();
 const router = express.Router();
@@ -335,6 +336,15 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
     })
 }))
 
+router.use(authMiddleware)
 
+router.get("/logout", controllersWrapper((req: Request, res: Response) => {
+    res.clearCookie('token');
+    res.status(200).send({
+        status: 200,
+        success: true,
+        message: 'Logged out successfully!',
+    });
+}))
 
 export default router;
