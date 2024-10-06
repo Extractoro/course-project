@@ -6,10 +6,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization ?? ""
-    const [tokenType, token] = authHeader.split(" ");
+    // const authHeader = req.headers.authorization ?? ""
+    // const [tokenType, token] = authHeader.split(" ");
 
-    if (!token || !tokenType) {
+    const token = req.cookies?.token;
+
+    if (!token) {
         res.status(401).send({
             status: 401,
             success: false,
@@ -26,7 +28,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
                     message: "Invalid token!"
                 })
             } else {
-                (<any>req).user = value.results;
+                (<any>req).user = value;
                 next();
             }
         })

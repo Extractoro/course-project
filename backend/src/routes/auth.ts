@@ -1,18 +1,16 @@
-import express, {Request, Response} from "express"
+import {Request, Response, Router} from "express"
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
+import { jwtDecode } from "jwt-decode";
 import database from "../utils/database";
 import controllersWrapper from "../helpers/controllersWrapper";
-import sgMail from "@sendgrid/mail";
-import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from 'uuid';
 import transporter from "../utils/emailSender";
 import authMiddleware from "../middlewares/authMiddleware";
 
 dotenv.config();
-const router = express.Router();
-sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
+const router = Router();
 
 router.post('/registration', controllersWrapper((req: Request, res: Response) => {
     database.getConnection(async function(err, connection) {
@@ -435,18 +433,31 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
                 }
 
                 if (result) {
+                    const token = jwt.sign(
+                        { user_firstname, user_lastname, email },
+                        process.env.JWT_SECRET as string,
+                        { expiresIn: process.env.EXPIRESIN }
+                    );
+
+                    res.cookie('token', token, {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        maxAge: 1000 * 60 * 60,
+                        sameSite: 'strict',
+                    });
+
                     res.status(200).send({
                         status: 200,
                         success: true,
                         message: 'Success',
-                        results: { token: jwt.sign({user_firstname, user_lastname, email}, process.env.JWT_SECRET as string, { expiresIn: process.env.EXPIRESIN }) }
-                    })
+                        results: { token },
+                    });
                 } else {
-                    return res.status(500).send({
-                        status: 500,
+                    return res.status(401).send({
+                        status: 401,
                         success: false,
-                        message: err,
-                    })
+                        message: 'Invalid credentials',
+                    });
                 }
             })
         })
@@ -456,12 +467,46 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
 router.use(authMiddleware)
 
 router.get("/logout", controllersWrapper((req: Request, res: Response) => {
-    res.clearCookie('token');
-    res.status(200).send({
-        status: 200,
-        success: true,
-        message: 'Logged out successfully!',
-    });
+        res.clearCookie('token');
+        res.status(200).send({
+            status: 200,
+            success: true,
+            message: 'Logged out successfully!',
+        });
+    }))
+
+router.get("/current", controllersWrapper((req: Request, res: Response) => {
+    database.getConnection( function(err, connection) {
+        const token = req.cookies?.token;
+        const decoded = jwt.decode(token) as JwtPayload;
+
+        if (!decoded || typeof decoded === 'string' || !decoded.email) {
+            return res.status(401).send({
+                status: 401,
+                success: false,
+                message: 'Invalid token!',
+            });
+        }
+
+        const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, phone, role, verify FROM users WHERE email = ?`;
+
+        connection.query(sqlQuery, [decoded?.email], function (err, rows) {
+            if (err) {
+                return res.status(400).send({
+                    status: 400,
+                    success: false,
+                    message: err.message,
+                });
+            }
+
+            return res.status(200).send({
+                status: 200,
+                success: true,
+                results: rows,
+            });
+        })
+    })
+
 }))
 
 export default router;

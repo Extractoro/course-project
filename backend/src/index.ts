@@ -1,6 +1,7 @@
 import express from 'express';
 import {Request, Response} from 'express';
 import database from "./utils/database";
+import cookieParser from 'cookie-parser'
 
 import authRouter from './routes/auth';
 import authMiddleware from "./middlewares/authMiddleware";
@@ -8,6 +9,7 @@ import authMiddleware from "./middlewares/authMiddleware";
 const app = express();
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/auth', authRouter)
 
