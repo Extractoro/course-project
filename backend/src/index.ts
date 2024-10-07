@@ -2,9 +2,11 @@ import express from 'express';
 import {Request, Response} from 'express';
 import database from "./utils/database";
 import cookieParser from 'cookie-parser'
-
 import authRouter from './routes/auth';
 import authMiddleware from "./middlewares/authMiddleware";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(express.urlencoded({extended: true}));
