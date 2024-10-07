@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth';
 import authMiddleware from "./middlewares/authMiddleware";
 import dotenv from "dotenv";
+import adminRouter from "./routes/admin";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/auth', authRouter)
+app.use('/admin', adminRouter)
 
 // app.get('/users', (req: Request, res: Response) => {
 //     database.getConnection(function(err, connection) {

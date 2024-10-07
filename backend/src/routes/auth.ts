@@ -2,7 +2,6 @@ import {Request, Response, Router} from "express"
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
-import { jwtDecode } from "jwt-decode";
 import database from "../utils/database";
 import controllersWrapper from "../helpers/controllersWrapper";
 import { v4 as uuidv4 } from 'uuid';
@@ -561,7 +560,6 @@ router.post("/reset_password/:resetPasswordToken", controllersWrapper( (req: Req
             });
         });
 }));
-
 
 router.post('/login', controllersWrapper((req: Request, res: Response) => {
     database.getConnection( function(err, connection) {
