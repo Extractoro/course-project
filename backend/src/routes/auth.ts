@@ -649,38 +649,4 @@ router.get("/logout", controllersWrapper((req: Request, res: Response) => {
         });
     }))
 
-router.get("/current", controllersWrapper((req: Request, res: Response) => {
-    database.getConnection( function(err, connection) {
-        const token = req.cookies?.token;
-        const decoded = jwt.decode(token) as JwtPayload;
-
-        if (!decoded || typeof decoded === 'string' || !decoded.email) {
-            return res.status(401).send({
-                status: 401,
-                success: false,
-                message: 'Invalid token!',
-            });
-        }
-
-        const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, phone, role, verify FROM users WHERE email = ?`;
-
-        connection.query(sqlQuery, [decoded?.email], function (err, rows) {
-            if (err) {
-                return res.status(400).send({
-                    status: 400,
-                    success: false,
-                    message: err.message,
-                });
-            }
-
-            return res.status(200).send({
-                status: 200,
-                success: true,
-                results: rows,
-            });
-        })
-    })
-
-}))
-
 export default router;
