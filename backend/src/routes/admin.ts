@@ -4,7 +4,6 @@ import authMiddleware from "../middlewares/authMiddleware";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import controllersWrapper from "../helpers/controllersWrapper";
 import database from "../utils/database";
-import { validCategories } from '../helpers/validCategories';
 
 dotenv.config();
 const router = Router();
@@ -17,30 +16,18 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
 
    const categoryLower = category.trim().toLowerCase();
 
-   if (!validCategories.includes(categoryLower)) {
-      return res.status(400).send({ status: 400, success: false, message: 'Invalid category' });
-   }
+   const checkCategoryQuery = `SELECT * FROM categories WHERE LOWER(category_name) = ?`;
 
-   const checkEventQuery = `
-        SELECT * FROM events 
-        JOIN venues ON events.venue_id = venues.venue_id
-        WHERE event_name = ? 
-        AND event_date = ? 
-        AND venue_name = ? 
-        AND address = ? 
-        AND city = ?
-    `;
-
-   database.getConnection( function(err, connection) {
+   database.getConnection(function (err, connection) {
       if (err) {
          return res.status(500).send({
             status: 500,
             success: false,
             message: err.message,
-         })
+         });
       }
 
-      connection.query(checkEventQuery, [event_name, event_date, venue_name, address, city], function (err, rows) {
+      connection.query(checkCategoryQuery, [categoryLower], function (err, rows) {
          if (err) {
             connection.release();
             return res.status(500).send({
@@ -50,62 +37,92 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
             });
          }
 
-         if (rows.length > 0) {
+         // Проверяем, существует ли категория
+         if (rows.length === 0) {
             connection.release();
-            return res.status(409).send({
-               status: 409,
+            return res.status(400).send({
+               status: 400,
                success: false,
-               message: 'Event with the same name, date, and venue already exists',
+               message: 'Invalid category',
             });
          }
 
+         const checkEventQuery = `
+                SELECT * FROM events 
+                JOIN venues ON events.venue_id = venues.venue_id
+                WHERE event_name = ? 
+                AND event_date = ? 
+                AND venue_name = ? 
+                AND address = ? 
+                AND city = ?
+            `;
 
-         const addVenueQuery = `INSERT INTO venues (venue_name, address, city, capacity)
-                                VALUES (?, ?, ?, ?)`;
+         connection.query(checkEventQuery, [event_name, event_date, venue_name, address, city], function (err, rows) {
+            if (err) {
+               connection.release();
+               return res.status(500).send({
+                  status: 500,
+                  success: false,
+                  message: err.message,
+               });
+            }
 
-         connection.beginTransaction(err => {
-            if (err) return res.status(500).send(err.message);
+            if (rows.length > 0) {
+               connection.release();
+               return res.status(409).send({
+                  status: 409,
+                  success: false,
+                  message: 'Event with the same name, date, and venue already exists',
+               });
+            }
 
-            connection.query(addVenueQuery, [venue_name, address, city, capacity], function (err, result) {
-               if (err) {
-                  return connection.rollback(() => {
-                     res.status(500).send({status: 500, success: false, message: err.message});
-                  });
-               }
+            const addVenueQuery = `INSERT INTO venues (venue_name, address, city, capacity)
+                                       VALUES (?, ?, ?, ?)`;
 
-               const venue_id = result.insertId
+            connection.beginTransaction(err => {
+               if (err) return res.status(500).send(err.message);
 
-               const addEventQuery = `INSERT INTO events (event_name, event_date, category, description, venue_id,
-                                                          ticket_price, available_tickets)
-                                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
-
-               connection.query(addEventQuery, [event_name, event_date, categoryLower, description, venue_id, ticket_price, available_tickets], function (err, result) {
+               connection.query(addVenueQuery, [venue_name, address, city, capacity], function (err, result) {
                   if (err) {
                      return connection.rollback(() => {
-                        res.status(500).send({status: 500, success: false, message: err.message});
+                        res.status(500).send({ status: 500, success: false, message: err.message });
                      });
                   }
 
-                  connection.commit((err) => {
+                  const venue_id = result.insertId;
+
+                  const addEventQuery = `INSERT INTO events (event_name, event_date, category, description, venue_id,
+                                                                    ticket_price, available_tickets)
+                                               VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+                  connection.query(addEventQuery, [event_name, event_date, categoryLower, description, venue_id, ticket_price, available_tickets], function (err, result) {
                      if (err) {
                         return connection.rollback(() => {
-                           res.status(500).send({status: 500, success: false, message: err.message});
+                           res.status(500).send({ status: 500, success: false, message: err.message });
                         });
                      }
 
-                     res.status(200).send({
-                        success: true,
-                        message: 'Event and Venue added successfully!',
-                        eventId: result.insertId,
-                        venueId: venue_id
+                     connection.commit((err) => {
+                        if (err) {
+                           return connection.rollback(() => {
+                              res.status(500).send({ status: 500, success: false, message: err.message });
+                           });
+                        }
+
+                        res.status(200).send({
+                           success: true,
+                           message: 'Event and Venue added successfully!',
+                           eventId: result.insertId,
+                           venueId: venue_id
+                        });
                      });
                   });
-               })
-            })
-         })
-      })
-   })
-}))
+               });
+            });
+         });
+      });
+   });
+}));
 
 router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Response) => {
    const event_id: number = Number(req.params.id);
@@ -118,20 +135,7 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
 
    const categoryLower = category.trim().toLowerCase();
 
-   if (!validCategories.includes(categoryLower)) {
-      return res.status(400).send({ status: 400, success: false, message: 'Invalid category' });
-   }
-
-   const checkEventQuery = `
-        SELECT * FROM events 
-        JOIN venues ON events.venue_id = venues.venue_id
-        WHERE event_id != ? 
-        AND event_name = ? 
-        AND event_date = ? 
-        AND venue_name = ? 
-        AND address = ? 
-        AND city = ?
-    `;
+   const checkCategoryQuery = `SELECT * FROM categories WHERE LOWER(category_name) = ?`;
 
    database.getConnection(function (err, connection) {
       if (err) {
@@ -142,7 +146,8 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
          });
       }
 
-      connection.query(checkEventQuery, [event_id, event_name, event_date, venue_name, address, city], function (err, rows) {
+      // Проверяем наличие категории
+      connection.query(checkCategoryQuery, [categoryLower], function (err, rows) {
          if (err) {
             connection.release();
             return res.status(500).send({
@@ -152,54 +157,86 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
             });
          }
 
-         if (rows.length > 0) {
+         // Если категория не найдена, возвращаем ошибку
+         if (rows.length === 0) {
             connection.release();
-            return res.status(409).send({
-               status: 409,
+            return res.status(400).send({
+               status: 400,
                success: false,
-               message: 'Event with the same name, date, and venue already exists',
+               message: 'Invalid category',
             });
          }
 
-         const updateVenueQuery = `
-                UPDATE venues 
-                SET venue_name = ?, address = ?, city = ?, capacity = ? 
-                WHERE venue_id = (SELECT venue_id FROM events WHERE event_id = ?)
+         const checkEventQuery = `
+                SELECT * FROM events 
+                JOIN venues ON events.venue_id = venues.venue_id
+                WHERE event_id != ? 
+                AND event_name = ? 
+                AND event_date = ? 
+                AND venue_name = ? 
+                AND address = ? 
+                AND city = ?
             `;
 
-         const updateEventQuery = `
-                UPDATE events 
-                SET event_name = ?, event_date = ?, category = ?, description = ?, ticket_price = ?, available_tickets = ?
-                WHERE event_id = ?
-            `;
+         connection.query(checkEventQuery, [event_id, event_name, event_date, venue_name, address, city], function (err, rows) {
+            if (err) {
+               connection.release();
+               return res.status(500).send({
+                  status: 500,
+                  success: false,
+                  message: err.message,
+               });
+            }
 
-         connection.beginTransaction(err => {
-            if (err) return res.status(500).send(err.message);
+            if (rows.length > 0) {
+               connection.release();
+               return res.status(409).send({
+                  status: 409,
+                  success: false,
+                  message: 'Event with the same name, date, and venue already exists',
+               });
+            }
 
-            connection.query(updateVenueQuery, [venue_name, address, city, capacity, event_id], function (err, result) {
-               if (err) {
-                  return connection.rollback(() => {
-                     res.status(500).send({ status: 500, success: false, message: err.message });
-                  });
-               }
+            const updateVenueQuery = `
+                    UPDATE venues 
+                    SET venue_name = ?, address = ?, city = ?, capacity = ? 
+                    WHERE venue_id = (SELECT venue_id FROM events WHERE event_id = ?)
+                `;
 
-               connection.query(updateEventQuery, [event_name, event_date, categoryLower, description, ticket_price, available_tickets, event_id], function (err, result) {
+            const updateEventQuery = `
+                    UPDATE events 
+                    SET event_name = ?, event_date = ?, category = ?, description = ?, ticket_price = ?, available_tickets = ?
+                    WHERE event_id = ?
+                `;
+
+            connection.beginTransaction(err => {
+               if (err) return res.status(500).send(err.message);
+
+               connection.query(updateVenueQuery, [venue_name, address, city, capacity, event_id], function (err, result) {
                   if (err) {
                      return connection.rollback(() => {
                         res.status(500).send({ status: 500, success: false, message: err.message });
                      });
                   }
 
-                  connection.commit((err) => {
+                  connection.query(updateEventQuery, [event_name, event_date, categoryLower, description, ticket_price, available_tickets, event_id], function (err, result) {
                      if (err) {
                         return connection.rollback(() => {
                            res.status(500).send({ status: 500, success: false, message: err.message });
                         });
                      }
 
-                     res.status(200).send({
-                        success: true,
-                        message: 'Event and Venue updated successfully!',
+                     connection.commit((err) => {
+                        if (err) {
+                           return connection.rollback(() => {
+                              res.status(500).send({ status: 500, success: false, message: err.message });
+                           });
+                        }
+
+                        res.status(200).send({
+                           success: true,
+                           message: 'Event and Venue updated successfully!',
+                        });
                      });
                   });
                });
