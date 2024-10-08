@@ -44,7 +44,6 @@ router.get("/current", controllersWrapper((req: Request, res: Response) => {
             });
         })
     })
-
 }))
 
 router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Response) => {

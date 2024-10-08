@@ -6,6 +6,7 @@ import authRouter from './routes/auth';
 import adminRouter from "./routes/admin";
 import userRouter from "./routes/user";
 import ticketsRouter from "./routes/tickets";
+import fetchRouter from "./routes/fetch";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use('/auth', authRouter)
 app.use('/admin', adminRouter)
 app.use('/user', userRouter)
 app.use('/tickets', ticketsRouter)
+app.use('/fetch', fetchRouter)
 
 // app.get('/users', (req: Request, res: Response) => {
 //     database.getConnection(function(err, connection) {
