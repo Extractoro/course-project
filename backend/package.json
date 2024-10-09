@@ -18,6 +18,7 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "heroku": "^8.7.1",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "mysql": "^2.18.1",
@@ -40,6 +41,7 @@
     "typescript": "^5.6.2"
   },
   "engines": {
-    "node": "18.x"
+    "node": "18.x",
+    "npm": "3.10.8"
   }
 }
