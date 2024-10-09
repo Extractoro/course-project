@@ -2,3 +2,4 @@
 /frontend
 .env
 Procfile
+/node_modules
