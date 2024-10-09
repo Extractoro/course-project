@@ -37,7 +37,6 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
             });
          }
 
-         // Проверяем, существует ли категория
          if (rows.length === 0) {
             connection.release();
             return res.status(400).send({
@@ -146,7 +145,6 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
          });
       }
 
-      // Проверяем наличие категории
       connection.query(checkCategoryQuery, [categoryLower], function (err, rows) {
          if (err) {
             connection.release();
@@ -157,7 +155,6 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
             });
          }
 
-         // Если категория не найдена, возвращаем ошибку
          if (rows.length === 0) {
             connection.release();
             return res.status(400).send({

@@ -38,7 +38,7 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
         }
 
         connection.query(getAllEventsQuery, function (err, results) {
-            connection.release(); // Освобождаем соединение после выполнения запроса
+            connection.release();
 
             if (err) {
                 return res.status(500).send({
@@ -120,7 +120,7 @@ router.get("/user_tickets/:user_id", controllersWrapper(async (req: Request, res
         }
 
         connection.query(getUserTicketsQuery, [user_id], function (err, results) {
-            connection.release(); // Освобождаем соединение после выполнения запроса
+            connection.release();
 
             if (err) {
                 return res.status(500).send({

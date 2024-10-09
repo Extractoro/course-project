@@ -6,9 +6,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    // const authHeader = req.headers.authorization ?? ""
-    // const [tokenType, token] = authHeader.split(" ");
-
     const token = req.cookies?.token;
 
     if (!token) {
