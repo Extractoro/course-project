@@ -180,10 +180,10 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
                               <p>Hello, ${firstname} ${lastname}!</p>
                               <p>It looks like you've changed your email for your <strong>EventNest</strong> account. Please confirm your new email address by clicking the button below.</p>
                               <div style="text-align: center; margin: 20px 0;">
-                                 <a href="http://localhost:3000/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
+                                 <a href="https://course-project-63452ec526ac.herokuapp.com/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
                               </div>
                               <p>If the button doesn't work, copy and paste the following URL into your browser's address bar:</p>
-                              <p>http://localhost:3000/auth/registration_confirm/${verificationToken}</p>
+                              <p>https://course-project-63452ec526ac.herokuapp.com/auth/registration_confirm/${verificationToken}</p>
                               <p>If you did not request this change, please contact support immediately.</p>
                               <p>Best regards,<br>The EventNest Team</p>
                            </div>
