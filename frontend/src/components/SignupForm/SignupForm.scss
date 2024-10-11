@@ -15,8 +15,9 @@
   }
 
   &__form {
-    width: 100%;
-    max-width: 280px;
+    padding: 0 1.5rem;
+    width: 85vw;
+    max-width: 600px;
 
     &-container {
       width: 100%;
@@ -55,7 +56,7 @@
 
       &--button {
         position: absolute;
-        right: 12px;
+        right: 16px;
         top: 50%;
         transform: translateY(-50%);
         border: none;

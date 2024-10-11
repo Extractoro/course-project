@@ -51,7 +51,9 @@ const SignupForm = () => {
             e.preventDefault();
             await signup({firstName, lastName, email, phone, password}).unwrap()
 
-            toast.success('Successfully registered. Now confirm your email!')
+            toast.success('Successfully registered. Now confirm your email!', {
+                autoClose: 2000,
+            })
             reset();
         } catch (err: any) {
             toast.error('Something went wrong', {
@@ -74,13 +76,13 @@ const SignupForm = () => {
             <h1 className="signup__title">Sign up</h1>
             <form className='signup__form' onSubmit={handleSubmit}>
                 <div className='signup__form-container'>
-                    <label className='signup__form-label' htmlFor="firstname">Firstname</label>
+                    <label className='signup__form-label' htmlFor="firstname">First name</label>
                     <input className='signup__form-input' onChange={handleChange} type="text" id="firstname"
                            name="firstName" value={firstName} pattern=".{1,50}"
                            title="Firstname must not exceed 50 characters." required/>
                 </div>
                 <div className='signup__form-container'>
-                    <label className='signup__form-label' htmlFor="lastname">Lastname</label>
+                    <label className='signup__form-label' htmlFor="lastname">Last name</label>
                     <input className='signup__form-input' onChange={handleChange} type="text" id="lastname"
                            name="lastName" value={lastName} pattern=".{1,50}"
                            title="Lastname must not exceed 50 characters." required/>

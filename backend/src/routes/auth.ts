@@ -1,10 +1,10 @@
 import {Request, Response, Router} from "express"
 import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import dotenv from "dotenv";
 import database from "../utils/database";
 import controllersWrapper from "../helpers/controllersWrapper";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import transporter from "../utils/emailSender";
 import authMiddleware from "../middlewares/authMiddleware";
 
@@ -12,7 +12,7 @@ dotenv.config();
 const router = Router();
 
 router.post('/registration', controllersWrapper((req: Request, res: Response) => {
-    database.getConnection(async function(err, connection) {
+    database.getConnection(async function (err, connection) {
         if (err) {
             console.log(err);
             return res.status(500).send({
@@ -29,7 +29,7 @@ router.post('/registration', controllersWrapper((req: Request, res: Response) =>
         const verificationToken = uuidv4()
         const resetPasswordToken = uuidv4()
 
-        connection.query(sqlQuery, [firstName, lastName, email, hashedPassword, phone || null, verificationToken, resetPasswordToken],function (err, results) {
+        connection.query(sqlQuery, [firstName, lastName, email, hashedPassword, phone || null, verificationToken, resetPasswordToken], function (err, results) {
             if (err) {
                 connection.release();
                 return res.status(400).send({
@@ -133,55 +133,62 @@ router.post('/registration', controllersWrapper((req: Request, res: Response) =>
 }))
 
 router.get("/registration_confirm/:verificationToken", controllersWrapper((req: Request, res: Response) => {
-        database.getConnection(function (err, connection) {
-            if (err) {
-                console.log(err);
-                return res.status(500).send({
-                    status: 500,
+    database.getConnection(function (err, connection) {
+        if (err) {
+            console.log(err);
+            return res.status(500).send({
+                status: 500,
+                success: false,
+                message: err.message,
+            })
+        }
+
+        const sqlSelect = `SELECT user_firstname, user_lastname, email
+                           FROM users
+                           WHERE verificationToken = ?
+                             AND verify = 0`;
+        const sqlUpdate = `UPDATE users
+                           SET verify            = 1,
+                               verificationToken = NULL
+                           WHERE verificationToken = ?
+                             AND verify = 0`;
+
+        const {verificationToken} = req.params
+
+        connection.query(sqlSelect, [verificationToken], async function (err, rows) {
+            if (err || rows.length === 0) {
+                connection.release();
+                return res.status(400).send({
+                    status: 400,
                     success: false,
-                    message: err.message,
+                    message: "Something went wrong or you are already verified. Please write to support!",
                 })
             }
 
-            const sqlSelect = `SELECT user_firstname, user_lastname, email FROM users WHERE verificationToken = ? AND verify = 0`;
-            const sqlUpdate = `UPDATE users SET verify = 1, verificationToken = NULL WHERE verificationToken = ? AND verify = 0`;
-
-            const { verificationToken } = req.params
-
-            connection.query(sqlSelect, [verificationToken], async function (err, rows) {
-                if (err || rows.length === 0) {
+            connection.query(sqlUpdate, [verificationToken], function (err, results) {
+                if (err) {
                     connection.release();
                     return res.status(400).send({
                         status: 400,
                         success: false,
-                        message: "Something went wrong or you are already verified. Please write to support!",
+                        message: err.message,
                     })
                 }
 
-                connection.query(sqlUpdate, [verificationToken], function (err, results) {
-                    if (err) {
-                        connection.release();
-                        return res.status(400).send({
-                            status: 400,
-                            success: false,
-                            message: err.message,
-                        })
-                    }
-
-                    res.status(200).send({
-                        status: 200,
-                        success: true,
-                        message: 'Successfully verified. Thank you that you with us!',
-                    })
+                res.status(200).send({
+                    status: 200,
+                    success: true,
+                    message: 'Successfully verified. Thank you that you with us!',
                 })
+            })
 
-                const { user_firstname, user_lastname, email } = rows[0];
+            const {user_firstname, user_lastname, email} = rows[0];
 
-                await transporter.sendMail({
-                    to: email,
-                    from: "EventNest <vadym.tytarenko@nure.ua>",
-                    subject: "Confirmation successful for EventNest",
-                    html: `<!DOCTYPE html>
+            await transporter.sendMail({
+                to: email,
+                from: "EventNest <vadym.tytarenko@nure.ua>",
+                subject: "Confirmation successful for EventNest",
+                html: `<!DOCTYPE html>
                         <html lang="en">
                         <head>
                             <meta charset="UTF-8">
@@ -259,10 +266,10 @@ router.get("/registration_confirm/:verificationToken", controllersWrapper((req: 
                         </body>
                         </html>
                         `,
-                })
             })
         })
-    }))
+    })
+}))
 
 router.get("/confirmation_resend", controllersWrapper((req: Request, res: Response) => {
     database.getConnection(function (err, connection) {
@@ -275,9 +282,12 @@ router.get("/confirmation_resend", controllersWrapper((req: Request, res: Respon
             })
         }
 
-        const { email: emailReceiver } = req.body;
+        const {email: emailReceiver} = req.body;
 
-        const sqlSelect = `SELECT user_firstname, user_lastname, email, verificationToken FROM users WHERE email = ? AND verify = 0`;
+        const sqlSelect = `SELECT user_firstname, user_lastname, email, verificationToken
+                           FROM users
+                           WHERE email = ?
+                             AND verify = 0`;
 
         connection.query(sqlSelect, [emailReceiver], async function (err, rows) {
             if (err || rows?.length === 0) {
@@ -296,7 +306,7 @@ router.get("/confirmation_resend", controllersWrapper((req: Request, res: Respon
             })
 
             console.log(rows[0])
-            const { user_firstname, user_lastname, email, verificationToken } = rows[0];
+            const {user_firstname, user_lastname, email, verificationToken} = rows[0];
 
             await transporter.sendMail({
                 to: email,
@@ -396,7 +406,7 @@ router.post("/forget_password", controllersWrapper((req: Request, res: Response)
             })
         }
 
-        const { email: emailReceiver } = req.body;
+        const {email: emailReceiver} = req.body;
 
         if (!emailReceiver) {
             return res.status(400).send({
@@ -406,7 +416,9 @@ router.post("/forget_password", controllersWrapper((req: Request, res: Response)
             });
         }
 
-        const sqlSelect = `SELECT user_firstname, user_lastname, email, resetPasswordToken FROM users WHERE email = ?`;
+        const sqlSelect = `SELECT user_firstname, user_lastname, email, resetPasswordToken
+                           FROM users
+                           WHERE email = ?`;
 
         connection.query(sqlSelect, [emailReceiver], async function (err, rows) {
             if (err || rows?.length === 0) {
@@ -424,7 +436,7 @@ router.post("/forget_password", controllersWrapper((req: Request, res: Response)
                 message: 'Successfully sent. You can change your password!',
             })
 
-            const { user_firstname, user_lastname, email, resetPasswordToken } = rows[0];
+            const {user_firstname, user_lastname, email, resetPasswordToken} = rows[0];
 
             await transporter.sendMail({
                 to: email,
@@ -508,9 +520,9 @@ router.post("/forget_password", controllersWrapper((req: Request, res: Response)
     })
 }))
 
-router.post("/reset_password/:resetPasswordToken", controllersWrapper( (req: Request, res: Response) => {
-    const { resetPasswordToken } = req.params;
-    const { newPassword } = req.body;
+router.post("/reset_password/:resetPasswordToken", controllersWrapper((req: Request, res: Response) => {
+    const {resetPasswordToken} = req.params;
+    const {newPassword} = req.body;
 
     if (!newPassword) {
         return res.status(400).send({
@@ -529,7 +541,9 @@ router.post("/reset_password/:resetPasswordToken", controllersWrapper( (req: Req
             });
         }
 
-        const sqlUpdate = `UPDATE users SET password = ? WHERE resetPasswordToken = ?`;
+        const sqlUpdate = `UPDATE users
+                           SET password = ?
+                           WHERE resetPasswordToken = ?`;
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
@@ -542,27 +556,27 @@ router.post("/reset_password/:resetPasswordToken", controllersWrapper( (req: Req
         }
 
         connection.query(sqlUpdate, [hashedPassword, resetPasswordToken], function (err, result) {
-                connection.release();
+            connection.release();
 
-                if (err || result.affectedRows === 0) {
-                    return res.status(400).send({
-                        status: 400,
-                        success: false,
-                        message: "Invalid token or something went wrong.",
-                    });
-                }
-
-                res.status(200).send({
-                    status: 200,
-                    success: true,
-                    message: 'Password has been reset successfully!',
+            if (err || result.affectedRows === 0) {
+                return res.status(400).send({
+                    status: 400,
+                    success: false,
+                    message: "Invalid token or something went wrong.",
                 });
+            }
+
+            res.status(200).send({
+                status: 200,
+                success: true,
+                message: 'Password has been reset successfully!',
             });
         });
+    });
 }));
 
 router.post('/login', controllersWrapper((req: Request, res: Response) => {
-    database.getConnection( function(err, connection) {
+    database.getConnection(function (err, connection) {
         if (err) {
             console.log(err);
             return res.status(500).send({
@@ -572,7 +586,10 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
             })
         }
 
-        const sqlQuery = `SELECT user_firstname, user_lastname, email, password FROM users WHERE verify = 1 AND email = ?`;
+        const sqlQuery = `SELECT user_firstname, user_lastname, email, password
+                          FROM users
+                          WHERE verify = 1
+                            AND email = ?`;
         const {email, password} = req.body
 
         connection.query(sqlQuery, [email], function (err, rows) {
@@ -594,7 +611,7 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
                 });
             }
 
-            const { user_firstname, user_lastname, email } = rows[0];
+            const {user_firstname, user_lastname, email} = rows[0];
             const hash = rows[0].password;
 
             bcrypt.compare(password, hash, (err, result) => {
@@ -608,23 +625,16 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
 
                 if (result) {
                     const token = jwt.sign(
-                        { user_firstname, user_lastname, email },
+                        {user_firstname, user_lastname, email},
                         process.env.JWT_SECRET as string,
-                        { expiresIn: process.env.EXPIRESIN }
+                        {expiresIn: process.env.EXPIRESIN}
                     );
-
-                    res.cookie('token', token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        maxAge: 1000 * 60 * 60,
-                        sameSite: 'strict',
-                    });
 
                     res.status(200).send({
                         status: 200,
                         success: true,
                         message: 'Success',
-                        results: { token },
+                        results: {token},
                     });
                 } else {
                     return res.status(401).send({
@@ -641,12 +651,11 @@ router.post('/login', controllersWrapper((req: Request, res: Response) => {
 router.use(authMiddleware)
 
 router.get("/logout", controllersWrapper((req: Request, res: Response) => {
-        res.clearCookie('token');
-        res.status(200).send({
-            status: 200,
-            success: true,
-            message: 'Logged out successfully!',
-        });
-    }))
+    res.status(200).send({
+        status: 200,
+        success: true,
+        message: 'Logged out successfully!',
+    });
+}))
 
 export default router;

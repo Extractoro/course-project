@@ -1,9 +1,8 @@
-export interface SignInRequest {
+export interface ForgetPasswordRequest {
     email: string;
-    password: string;
 }
 
-export interface SignInResponse {
+export interface ForgetPasswordResponse {
     status: number;
     success: boolean;
     message: string;

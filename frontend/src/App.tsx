@@ -4,14 +4,17 @@ import Home from "./pages/Home/Home.tsx";
 import {useTheme} from "./hooks/use-theme.ts";
 import Signup from "./pages/Signup/Signup.tsx";
 import {ToastContainer} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import Signin from "./pages/Signin/Signin.tsx";
+import ForgetPassword from "./pages/ForgetPassword/ForgetPassword.tsx";
+
+import 'react-toastify/dist/ReactToastify.css';
 
 const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/">
             <Route index element={<Home/>}/>
             <Route path="signup" element={<Signup/>}/>
             <Route path="signin" element={<Signin />} />
+            <Route path='/forget-password' element={<ForgetPassword/>} />
             {/*<Route path="*" element={<h1>Page not found</h1>} />*/}
         </Route>
     )

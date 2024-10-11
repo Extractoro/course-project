@@ -6,9 +6,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies?.token;
+    const authHeader = req.headers.authorization ?? ""
+    const [tokenType, token] = authHeader.split(" ");
 
-    if (!token) {
+    if (!token || !tokenType) {
         res.status(401).send({
             status: 401,
             success: false,

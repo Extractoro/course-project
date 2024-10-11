@@ -5,17 +5,31 @@ import {useState} from "react";
 import sprite from '../../assets/symbol-defs.svg';
 import './Header.scss'
 import Container from "../Container/Container.tsx";
+import {useLogoutMutation} from "../../redux/auth/auth_api.ts";
+import {toast} from "react-toastify";
 
 const Header = () => {
+    const [logout] = useLogoutMutation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
+    const handleLogout = async () => {
+        try {
+            await logout(undefined).unwrap();
+            toast.success('You have been logged out.', {
+                autoClose: 2000,
+            })
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
     const navItems = [
-        { link: 'Profile', path: '/profile' },
-        { link: 'Log Out', path: '/logout' }
+        { link: 'Profile', path: '/profile', isLogout: false  },
+        { link: 'Log Out', path: '/logout', isLogout: true  }
     ]
 
     return (
@@ -45,15 +59,18 @@ const Header = () => {
             </header>
 
             <div className={`menu ${isMenuOpen ? "menu--open" : "menu--closed"}`}>
-                {navItems.map(({ link, path }) => (
-                    <Link
-                        key={link}
-                        to={path}
-                        onClick={toggleMenu}
-                        className="menu__item"
-                    >
-                        {link}
-                    </Link>
+                {navItems.map(({ link, path, isLogout }) => (
+                    <div key={link} className="menu__item" onClick={isLogout ? handleLogout : undefined}>
+                        {isLogout ? (
+                            <button onClick={toggleMenu} className="menu__link">
+                                {link}
+                            </button>
+                        ) : (
+                            <Link to={path} onClick={toggleMenu} className="menu__link">
+                                {link}
+                            </Link>
+                        )}
+                    </div>
                 ))}
             </div>
         </>

@@ -1,7 +1,6 @@
 .header {
   background-color: var(--main-color);
-  padding: 1.5rem 0;
-
+  padding: 1.5rem 1.5rem;
 
   &__wrapper {
     display: flex;
@@ -76,12 +75,13 @@
     pointer-events: none;
   }
 
-  &__item {
+  &__link {
     display: block;
     padding: 0.5rem 0;
     font-size: 1.125rem;
     color: var(--paragraph-color);
     text-decoration: none;
+    border: none;
 
     &:hover {
       color: var(--accent-color);
