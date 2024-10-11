@@ -22,6 +22,6 @@ app.use('/user', userRouter)
 app.use('/tickets', ticketsRouter)
 app.use('/fetch', fetchRouter)
 
-app.listen(3000, () => {
-    console.log('The application is listening on port 3000!');
+app.listen(process.env.PORT || 8080, () => {
+    console.log(`The application is listening on port ${process.env.PORT || 8080}!`);
 })
