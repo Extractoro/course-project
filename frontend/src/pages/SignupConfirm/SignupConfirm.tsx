@@ -37,7 +37,7 @@ const SignupConfirm = () => {
                 <div className='signupConfirm-container'>
                     <div className='signupConfirm-wrapper'>
                         <h2 className='signupConfirm-title'>Thank You for Verifying Your Email!</h2>
-                        <a className='signupConfirm-link' href={`http://localhost:5173/signin`}>Go to sign in!</a>
+                        <a className='signupConfirm-link' href={`http://localhost:5174/signin`}>Go to sign in!</a>
                         <p className='signupConfirm-paragraph'>Thank you for being a part of EventNest. If you have any
                             questions, feel free to contact our support
                             team.</p>

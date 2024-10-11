@@ -86,6 +86,16 @@
         top: 2px;
         background-color: var(--accent-color-darker);
       }
+
+      &--link {
+        font-family: "Poppins", sans-serif;
+        text-decoration: none;
+        color: var(--accent-color);
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        background: none;
+        border: none;
+      }
     }
 
     &-paragraph {
@@ -100,7 +110,6 @@
         text-decoration: none;
         color: var(--accent-color);
         margin-bottom: 1rem;
-
       }
     }
   }

@@ -271,7 +271,7 @@ router.get("/registration_confirm/:verificationToken", controllersWrapper((req: 
     })
 }))
 
-router.get("/confirmation_resend", controllersWrapper((req: Request, res: Response) => {
+router.post("/confirmation_resend", controllersWrapper((req: Request, res: Response) => {
     database.getConnection(function (err, connection) {
         if (err) {
             console.log(err);
@@ -290,6 +290,7 @@ router.get("/confirmation_resend", controllersWrapper((req: Request, res: Respon
                              AND verify = 0`;
 
         connection.query(sqlSelect, [emailReceiver], async function (err, rows) {
+            console.log(rows?.length)
             if (err || rows?.length === 0) {
                 connection.release();
                 return res.status(400).send({

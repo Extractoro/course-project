@@ -1,6 +1,6 @@
 import {Link, useNavigate} from "react-router-dom";
-import { IoMenu } from "react-icons/io5";
-import { FaXmark } from "react-icons/fa6";
+import {IoMenu} from "react-icons/io5";
+import {FaXmark} from "react-icons/fa6";
 import {useState} from "react";
 import sprite from '../../assets/symbol-defs.svg';
 import './Header.scss'
@@ -32,8 +32,8 @@ const Header = () => {
     };
 
     const navItems = [
-        { link: 'Profile', path: '/profile', isLogout: false  },
-        { link: 'Log Out', path: '/logout', isLogout: true  }
+        {link: 'Profile', path: '/profile', isLogout: false},
+        {link: 'Log Out', path: '/logout', isLogout: true}
     ]
 
     return (
@@ -42,7 +42,9 @@ const Header = () => {
                 <Container>
                     <div className="header__wrapper">
                         <div className="header__logo">
-                             <svg className="header__logo-icon"><use href={`${sprite}#logo`}></use></svg>
+                            <svg className="header__logo-icon">
+                                <use href={`${sprite}#logo`}></use>
+                            </svg>
                             <span className="header__logo-span">EventNest</span>
                         </div>
 
@@ -64,21 +66,23 @@ const Header = () => {
                 </Container>
             </header>
 
-            <div className={`menu ${isMenuOpen ? "menu--open" : "menu--closed"}`}>
-                {navItems.map(({link, path, isLogout}) => (
-                    <div key={link} className="menu__item" onClick={isLogout ? handleLogout : undefined}>
-                        {isLogout ? (
-                            <button onClick={toggleMenu} className="menu__link">
-                                {link}
-                            </button>
-                        ) : (
-                            <Link to={path} onClick={toggleMenu} className="menu__link">
-                            {link}
-                            </Link>
-                        )}
-                    </div>
-                ))}
-            </div>
+            {token && (
+                <div className={`menu ${isMenuOpen ? "menu--open" : "menu--closed"}`}>
+                    {navItems.map(({link, path, isLogout}) => (
+                        <div key={link} className="menu__item" onClick={isLogout ? handleLogout : undefined}>
+                            {isLogout ? (
+                                <button onClick={toggleMenu} className="menu__link">
+                                    {link}
+                                </button>
+                            ) : (
+                                <Link to={path} onClick={toggleMenu} className="menu__link">
+                                    {link}
+                                </Link>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
         </>
     );
 };

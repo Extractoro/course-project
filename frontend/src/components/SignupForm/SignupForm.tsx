@@ -1,13 +1,14 @@
-import {ChangeEvent, FormEvent, useState} from "react";
+import {ChangeEvent, FormEvent, MouseEvent, useState} from "react";
 import {FaRegEye} from "react-icons/fa6";
 import {FaRegEyeSlash} from "react-icons/fa6";
 import './SignupForm.scss'
 import {Link} from "react-router-dom";
-import {useSignUpMutation} from "../../redux/auth/auth_api.ts";
+import {useConfirmResendMutation, useSignUpMutation} from "../../redux/auth/auth_api.ts";
 import {toast} from "react-toastify";
 
 const SignupForm = () => {
     const [signup] = useSignUpMutation();
+    const [confirmResend] = useConfirmResendMutation();
     const [show, setShow] = useState(false);
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -45,6 +46,29 @@ const SignupForm = () => {
                 return;
         }
     };
+
+    const handleConfirm = async (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+
+        if (!email) {
+            toast.error('Enter an email in input', {
+                autoClose: 2000,
+            });
+            return;
+        }
+
+        try {
+            await confirmResend({ email }).unwrap();
+            toast.success('Confirmation has been resent!', {
+                autoClose: 2000,
+            });
+        } catch (err: any) {
+            toast.error('Failed to resend confirmation email.', {
+                autoClose: 2000,
+            });
+        }
+    };
+
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         try {
@@ -115,6 +139,7 @@ const SignupForm = () => {
                         </button>
                     </div>
                 </div>
+                <button className='signin__form-button--link' onClick={handleConfirm}>Resend verification</button>
                 <button className='signup__form-button' type="submit">Sign up</button>
                 <p className='signup__form-paragraph'>Already have an account? <Link
                     className='signup__form-paragraph--link' to={'/signin'}>Login</Link></p>
