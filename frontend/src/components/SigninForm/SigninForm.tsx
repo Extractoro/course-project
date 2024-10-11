@@ -2,11 +2,12 @@ import {ChangeEvent, FormEvent, useState} from "react";
 import {FaRegEye} from "react-icons/fa6";
 import {FaRegEyeSlash} from "react-icons/fa6";
 import './signinForm.scss'
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useSignInMutation} from "../../redux/auth/auth_api.ts";
 import {toast} from "react-toastify";
 
 const signinForm = () => {
+    const navigate = useNavigate();
     const [signin] = useSignInMutation();
     const [show, setShow] = useState(false);
     const [email, setEmail] = useState("");
@@ -35,7 +36,11 @@ const signinForm = () => {
         try {
             e.preventDefault();
             await signin({email, password}).unwrap()
+            toast.success('You successfully signed in!', {
+                autoClose: 2000,
+            });
             reset();
+            navigate("/");
         } catch (err: any) {
             if (err.data?.message) {
                 toast.error(`${err.data?.message}`, {

@@ -114,10 +114,10 @@ router.post('/registration', controllersWrapper((req: Request, res: Response) =>
                                 <p>Hello, ${firstName} ${lastName}!</p>
                                 <p>Thank you for registering with <strong>EventNest</strong> — your portal for booking event tickets. To complete the registration process and activate your account, please confirm your email address by clicking the button below.</p>
                                 <div style="text-align: center; margin: 20px 0;">
-                                    <a href="http://localhost:3000/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
+                                    <a href="${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
                                 </div>
                                 <p>If the button doesn't work, copy and paste the following URL into your browser's address bar:</p>
-                                <p>http://localhost:3000/auth/registration_confirm/${verificationToken}</p>
+                                <p>${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}</p>
                                 <p>If you did not register for EventNest, you can safely ignore this email.</p>
                                 <p>Best regards,<br>The EventNest Team</p>
                             </div>
@@ -254,7 +254,7 @@ router.get("/registration_confirm/:verificationToken", controllersWrapper((req: 
                                     <p>Hello, ${user_firstname} ${user_lastname}!</p>
                                     <p>Your email has been successfully verified. Welcome to <strong>EventNest</strong> — your portal for booking event tickets. Now you can fully enjoy all the features of your account, including browsing events, purchasing tickets, and managing your bookings.</p>
                                     <div style="text-align: center; margin: 20px 0;">
-                                        <a href="[Link to EventNest]" class="button">Go to EventNest</a>
+                                        <a href="${process.env.CLIENT_URL}" class="button">Go to EventNest</a>
                                     </div>
                                     <p>Thank you for being a part of EventNest. If you have any questions, feel free to contact our support team.</p>
                                     <p>Best regards,<br>The EventNest Team</p>
@@ -376,10 +376,10 @@ router.get("/confirmation_resend", controllersWrapper((req: Request, res: Respon
                             <p>Hello, ${user_firstname} ${user_lastname}!</p>
                             <p>Thank you for registering with <strong>EventNest</strong> — your portal for booking event tickets. To complete the registration process and activate your account, please confirm your email address by clicking the button below.</p>
                             <div style="text-align: center; margin: 20px 0;">
-                                <a href="http://localhost:3000/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
+                                <a href="${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
                             </div>
                             <p>If the button doesn't work, copy and paste the following URL into your browser's address bar:</p>
-                            <p>http://localhost:3000/auth/registration_confirm/${verificationToken}</p>
+                            <p>${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}</p>
                             <p>If you did not register for EventNest, you can safely ignore this email.</p>
                             <p>Best regards,<br>The EventNest Team</p>
                         </div>
@@ -506,7 +506,7 @@ router.post("/forget_password", controllersWrapper((req: Request, res: Response)
                             <p>Hello, ${user_firstname} ${user_lastname}!</p>
                             <p>To reset your password, please click the button below:</p>
                             <div style="text-align: center; margin: 20px 0;">
-                                <a href="http://localhost:3000/auth/reset_password/${resetPasswordToken}" class="button">Reset Password</a>
+                                <a href="${process.env.CLIENT_URL}/auth/reset_password/${resetPasswordToken}" class="button">Reset Password</a>
                             </div>
                             <p>If you did not request a password reset, please ignore this email.</p>
                             <p>Best regards,<br>The EventNest Team</p>

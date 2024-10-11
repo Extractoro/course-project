@@ -18,6 +18,12 @@ export const authApi = createApi({
             }),
             invalidatesTags: ['auth'],
         }),
+        signUpConfirmation: builder.mutation<SignUpResponse, { verificationToken: string }>({
+            query: ({verificationToken}) => ({
+                url: `/auth/registration_confirm/${verificationToken}`,
+                method: 'GET',
+            })
+        }),
         signIn: builder.mutation<SignInResponse, SignInRequest>({
             query: body => ({
                 url: '/auth/login',
@@ -49,6 +55,13 @@ export const authApi = createApi({
             }),
             invalidatesTags: ['auth'],
         }),
+        resetPassword: builder.mutation<SignUpResponse, { resetPasswordToken: string, newPassword: string }>({
+            query: body => ({
+                url: `/auth/reset_password/${body.resetPasswordToken}`,
+                method: 'POST',
+                body
+            })
+        }),
         logout: builder.mutation<LogOutResponse, void>({
             query: () => ({
                 url: '/auth/logout',
@@ -72,7 +85,9 @@ export const authApi = createApi({
 
 export const {
     useSignUpMutation,
+    useSignUpConfirmationMutation,
     useSignInMutation,
     useLogoutMutation,
     useForgetPasswordMutation,
+    useResetPasswordMutation,
 } = authApi;

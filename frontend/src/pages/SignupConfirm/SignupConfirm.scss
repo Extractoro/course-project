@@ -1,0 +1,44 @@
+.signupConfirm {
+  &-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4rem 0;
+  }
+
+  &-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 1.5rem;
+    width: 85vw;
+    max-width: 600px;
+  }
+
+  &-title {
+    font-weight: 600;
+    font-size: 2rem;
+    text-align: center;
+    color: var(--heading-color);
+    margin-bottom: 2.5rem;
+    line-height: 2.5rem;
+  }
+
+  &-paragraph {
+    font-weight: 400;
+    font-size: 1.2rem;
+    letter-spacing: 0.02em;
+    text-align: center;
+    color: var(--text-color);
+    line-height: 2rem;
+  }
+
+  &-link {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--accent-color);
+    margin-bottom: 2.5rem;
+    font-size: 1.3rem;
+    text-align: center;
+  }
+}
