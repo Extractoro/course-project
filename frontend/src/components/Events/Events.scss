@@ -1,0 +1,186 @@
+.events {
+  position: relative;
+
+  &-background {
+    position: relative;
+    margin-left: calc(-50vw + 50%);
+    width: 100vw;
+    height: 10rem;
+    background: linear-gradient(180deg, #2969bf 0%, #144e9d 100%);
+
+    &--container {
+      position: absolute;
+      left: 50%;
+      bottom: -20%;
+      transform: translateX(-50%);
+      border-radius: 8px;
+      width: 85vw;
+      max-width: 800px;
+      height: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 37px 0 rgba(0, 0, 0, 0.15);
+      background: var(--main-color);
+      gap: 2vw;
+    }
+
+    &--input {
+      display: block;
+      position: relative;
+      width: 30%;
+      height: 100%;
+      max-height: 40px;
+      max-width: 200px;
+      border-radius: 4px;
+      background: var(--input-background);
+      outline: none;
+      border: none;
+      padding-left: 1rem;
+      padding-right: 1rem;
+
+      font-weight: 600;
+      font-size: 16px;
+      line-height: 140%;
+      letter-spacing: 0.02em;
+
+      &--button {
+        position: absolute;
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: 0;
+      }
+    }
+
+    &--button {
+      position: relative;
+      width: 100%;
+      max-width: 150px;
+      border-radius: 6px;
+      padding: 10px 18px;
+      border: none;
+      background: var(--accent-color);
+      transition: 0.3s ease-in-out;
+
+      font-weight: 500;
+      font-size: 15px;
+      line-height: 133%;
+      letter-spacing: 0.02em;
+      color: var(--main-color);
+
+      &:hover {
+        top: 1px;
+        background-color: var(--accent-color-darker);
+      }
+    }
+
+    &--wrapper {
+      position: relative;
+    }
+  }
+
+  &-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 5rem 1.5rem 0 1.5rem;
+    width: 85%;
+    justify-items: center;
+    gap: 2rem;
+
+    @media screen and (min-width: 1024px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+}
+
+.venue {
+  display: none;
+  @media screen and (min-width: 1024px) {
+    display: block;
+  }
+}
+
+.events > .event-list {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.event-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  max-width: 600px;
+  padding: 16px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+
+  &__image {
+    img {
+      width: 100%;
+      border-radius: 8px;
+    }
+  }
+
+  &__content {
+    padding: 16px;
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  &__category {
+    font-size: 1rem;
+    color: #666;
+  }
+
+  &__date {
+    font-size: 1rem;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  &__description {
+    margin-bottom: 16px;
+  }
+
+  &__info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    &-venue,
+    &-tickets,
+    &-price {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+
+    &__button {
+      background-color: #f5f5f5;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    &__button--primary {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
-import {EventResponse} from "../../interfaces/fetch/EventResponce.ts";
+import {EventResponse} from "../../interfaces/fetch/EventResponse.ts";
 import Cookies from "js-cookie";
 
 export const fetchApi = createApi({

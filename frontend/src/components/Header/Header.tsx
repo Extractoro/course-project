@@ -41,12 +41,12 @@ const Header = () => {
             <header className="header">
                 <Container>
                     <div className="header__wrapper">
-                        <div className="header__logo">
+                        <Link to={'/'} className="header__logo">
                             <svg className="header__logo-icon">
                                 <use href={`${sprite}#logo`}></use>
                             </svg>
                             <span className="header__logo-span">EventNest</span>
-                        </div>
+                        </Link>
 
                         {token && (
                             <div className="header__profile">
