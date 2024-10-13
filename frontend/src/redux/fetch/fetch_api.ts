@@ -20,10 +20,16 @@ export const fetchApi = createApi({
             query: () => ({
                 url: '/fetch/events',
             }),
+        }),
+        fetchCategories: builder.query<EventResponse, void>({
+            query: () => ({
+                url: '/fetch/categories',
+            }),
         })
     })
 })
 
 export const {
-    useFetchEventsQuery
+    useFetchEventsQuery,
+    useFetchCategoriesQuery
 } = fetchApi;

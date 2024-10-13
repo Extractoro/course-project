@@ -11,11 +11,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import ResetPassword from "./pages/ResetPassword/ResetPassword.tsx";
 import PrivateRoute from "./services/PrivateRoute.tsx";
 import PublicRoute from "./services/PublicRoute.tsx";
+import EventDetail from "./pages/EventDetail/EventDetail.tsx";
 
 const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/">
             <Route element={<PrivateRoute />}>
                 <Route index element={<Home/>}/>
+                <Route path='events/:eventId' element={<EventDetail />}/>
             </Route>
 
             <Route element={<PublicRoute restricted />}>

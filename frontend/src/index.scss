@@ -11,61 +11,76 @@ article, aside, canvas, details, embed,
 figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 16px;
-    vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 16px;
+  vertical-align: baseline;
 }
+
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
-    display: block;
+  display: block;
 }
+
 body {
-    line-height: 1;
+  line-height: 1;
 }
+
 ol, ul {
-    list-style: none;
+  list-style: none;
 }
+
 blockquote, q {
-    quotes: none;
+  quotes: none;
 }
+
 blockquote:before, blockquote:after,
 q:before, q:after {
-    content: '';
-    content: none;
+  content: '';
+  content: none;
 }
+
 table {
-    border-collapse: collapse;
-    border-spacing: 0;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
 /* Light Theme */
 html[data-theme="light"] {
-    --main-color: #FFFFFF;
-    --accent-color: #2F80ED;
-    --accent-color-darker: #296fcf;
-    --text-color: #4F4F4F;
-    --paragraph-color: #333333;
-    --heading-color: #181818;
-    --input-background: #F2F2F2;
+  --main-color: #FFFFFF;
+  --accent-color: #2F80ED;
+  --accent-color-darker: #296fcf;
+  --text-color: #4F4F4F;
+  --paragraph-color: #333333;
+  --heading-color: #181818;
+  --input-background: #F2F2F2;
 }
 
 /* Dark Theme */
 html[data-theme="dark"] {
-    --main-color: #181818;
-    --accent-color: #2F80ED;
-    --accent-color-darker: #296fcf;
-    --text-color: #E0E0E0;
-    --paragraph-color: #B3B3B3;
-    --heading-color: #FFFFFF;
-    --input-background: #333333;
+  --main-color: #181818;
+  --accent-color: #2F80ED;
+  --accent-color-darker: #296fcf;
+  --text-color: #E0E0E0;
+  --paragraph-color: #B3B3B3;
+  --heading-color: #FFFFFF;
+  --input-background: #333333;
 }
 
 $mobile: 320px;
 $tablet: 768px;
+$laptop: 1024px;
 $desktop: 1280px;
 
 //* {
 //    outline: 2px solid green;
 //}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+*{
+  box-sizing: border-box;
+}
