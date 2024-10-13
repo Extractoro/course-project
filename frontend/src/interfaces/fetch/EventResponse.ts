@@ -2,7 +2,7 @@ export interface EventData {
     event_id: number;
     event_name: string;
     event_date: string;
-    category: string;
+    category_id: number;
     description: string | null;
     ticket_price: number;
     available_tickets: number;

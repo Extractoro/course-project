@@ -15,7 +15,7 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
             e.event_id, 
             e.event_name, 
             e.event_date, 
-            e.category, 
+            e.category_id, 
             e.description, 
             e.ticket_price, 
             e.available_tickets,

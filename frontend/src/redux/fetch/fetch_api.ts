@@ -1,6 +1,7 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import {EventResponse} from "../../interfaces/fetch/EventResponse.ts";
 import Cookies from "js-cookie";
+import {CategoriesResponse} from "../../interfaces/fetch/CategoryResponse.ts";
 
 export const fetchApi = createApi({
     reducerPath: 'fetchApi',
@@ -21,7 +22,7 @@ export const fetchApi = createApi({
                 url: '/fetch/events',
             }),
         }),
-        fetchCategories: builder.query<EventResponse, void>({
+        fetchCategories: builder.query<CategoriesResponse, void>({
             query: () => ({
                 url: '/fetch/categories',
             }),
