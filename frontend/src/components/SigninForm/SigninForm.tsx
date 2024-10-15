@@ -84,7 +84,7 @@ const signinForm = () => {
                 <Link to={'/forget-password'} className='signin__form-paragraph--link'>Forget password?</Link>
                 <button className='signin__form-button' type="submit">Sign in</button>
                 <p className='signin__form-paragraph'>Don’t have an account? <Link
-                    className='signin__form-paragraph--link' to={'/signup'}>Register</Link></p>
+                    className='signin__form-paragraph--link' to={'/signup'}>Sign up</Link></p>
             </form>
         </div>
     );

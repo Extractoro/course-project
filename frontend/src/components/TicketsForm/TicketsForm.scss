@@ -1,23 +1,8 @@
-.forgetPassword {
-  &__wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 4rem 0;
-  }
-
-  &__title {
-    font-weight: 600;
-    font-size: 28px;
-    text-align: center;
-    color: var(--heading-color);
-    margin-bottom: 2.5rem;
-  }
-
+.tickets-form {
   &__form {
     padding: 0 1.5rem;
     width: 100vw;
-    max-width: 600px;
+    max-width: 768px;
 
     &-container {
       width: 100%;
@@ -75,6 +60,7 @@
       background: var(--accent-color);
       transition: 0.3s ease-in-out;
       margin-bottom: 2rem;
+      cursor: pointer;
 
       font-weight: 500;
       font-size: 15px;
@@ -85,19 +71,6 @@
       &:hover {
         top: 2px;
         background-color: var(--accent-color-darker);
-      }
-    }
-
-    &-paragraph {
-      font-weight: 400;
-      font-size: 16px;
-      letter-spacing: 0.02em;
-      text-align: center;
-      color: var(--text-color);
-
-      &--link {
-        text-decoration: none;
-        color: var(--accent-color);
       }
     }
   }

@@ -15,7 +15,17 @@ router.use(authMiddleware)
 
 router.get("/current", controllersWrapper((req: Request, res: Response) => {
     database.getConnection( function(err, connection) {
-        const token = req.cookies?.token;
+        const authHeader = req.headers.authorization ?? ""
+        const [tokenType, token] = authHeader.split(" ");
+
+        if (!token || !tokenType) {
+            res.status(401).send({
+                status: 401,
+                success: false,
+                message: "No token provided or invalid token!"
+            })
+        }
+
         const decoded = jwt.decode(token) as JwtPayload;
 
         if (!decoded || typeof decoded === 'string' || !decoded.email) {

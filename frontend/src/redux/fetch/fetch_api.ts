@@ -2,6 +2,7 @@ import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import {EventResponse} from "../../interfaces/fetch/EventResponse.ts";
 import Cookies from "js-cookie";
 import {CategoriesResponse} from "../../interfaces/fetch/CategoryResponse.ts";
+import {UserTicketsRequest, UserTicketsResponse} from "../../interfaces/fetch/UserTicketsResponse.ts";
 
 export const fetchApi = createApi({
     reducerPath: 'fetchApi',
@@ -26,11 +27,18 @@ export const fetchApi = createApi({
             query: () => ({
                 url: '/fetch/categories',
             }),
+        }),
+        fetchUserTickets: builder.mutation<UserTicketsResponse, UserTicketsRequest>({
+            query: body => ({
+                url: `/fetch/user_tickets/${body?.user_id}`,
+                method: 'GET',
+            }),
         })
     })
 })
 
 export const {
     useFetchEventsQuery,
-    useFetchCategoriesQuery
+    useFetchCategoriesQuery,
+    useFetchUserTicketsMutation
 } = fetchApi;

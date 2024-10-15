@@ -139,7 +139,7 @@
 
   &__profile {
     position: absolute;
-    top: 33%;
+    top: 12.5rem;
 
     @media screen and (min-width: 1200px) {
       display: none;
@@ -186,6 +186,11 @@
   margin-bottom: 1rem;
   text-decoration: none;
   color: var(--text-color);
+  transition: 0.3s ease-in-out;
+
+  &:hover {
+    box-shadow: 0 4px 37px 0 rgba(0, 0, 0, 0.15);
+  }
 
   &__image {
     img {

@@ -142,7 +142,7 @@ const SignupForm = () => {
                 <button className='signin__form-button--link' onClick={handleConfirm}>Resend verification</button>
                 <button className='signup__form-button' type="submit">Sign up</button>
                 <p className='signup__form-paragraph'>Already have an account? <Link
-                    className='signup__form-paragraph--link' to={'/signin'}>Login</Link></p>
+                    className='signup__form-paragraph--link' to={'/signin'}>Sign in</Link></p>
             </form>
         </div>
     );
