@@ -37,8 +37,8 @@ const EventInfo = () => {
 
     return (
         <>
-            {eventsLoading && <p>Error</p>}
-            {eventsError && <p>Loading...</p>}
+            {eventsError && <p>Error</p>}
+            {eventsLoading && <p>Loading...</p>}
             {eventById && (
                 <div className='event-info-center'>
                     <div className='event-info__wrapper'>

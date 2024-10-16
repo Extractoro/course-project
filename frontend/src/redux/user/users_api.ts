@@ -1,7 +1,6 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
-import {TicketsData, TicketsResponse} from "../../interfaces/tickets/TicketsResponse.ts";
-import {UsersResponse} from "../../interfaces/users/UsersResponse.ts";
+import {UserRequest, UsersResponse} from "../../interfaces/users/UsersResponse.ts";
 
 export const usersApi = createApi({
     reducerPath: 'usersApi',
@@ -22,10 +21,10 @@ export const usersApi = createApi({
                 url: '/user/current',
             }),
         }),
-        updateUser: builder.mutation<TicketsResponse, TicketsData>({
-            query: body => ({
-                url: '/user/update_user/:id',
-                method: 'POST',
+        updateUser: builder.mutation<UsersResponse, UserRequest>({
+            query: (body) => ({
+                url: `/user/update_user/${body.user_id}`,
+                method: 'PUT',
                 body
             }),
         })

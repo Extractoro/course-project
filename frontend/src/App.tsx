@@ -1,4 +1,5 @@
 import './App.scss'
+import 'react-toastify/dist/ReactToastify.css';
 import {createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from "react-router-dom";
 import Home from "./pages/Home/Home.tsx";
 import {useTheme} from "./hooks/use-theme.ts";
@@ -7,17 +8,18 @@ import {ToastContainer} from 'react-toastify';
 import Signin from "./pages/Signin/Signin.tsx";
 import SignupConfirm from "./pages/SignupConfirm/SignupConfirm.tsx";
 import ForgetPassword from "./pages/ForgetPassword/ForgetPassword.tsx";
-import 'react-toastify/dist/ReactToastify.css';
 import ResetPassword from "./pages/ResetPassword/ResetPassword.tsx";
 import PrivateRoute from "./services/PrivateRoute.tsx";
 import PublicRoute from "./services/PublicRoute.tsx";
 import EventDetail from "./pages/EventDetail/EventDetail.tsx";
+import Profile from "./pages/Profile/Profile.tsx";
 
 const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/">
             <Route element={<PrivateRoute />}>
                 <Route index element={<Home/>}/>
                 <Route path='events/:eventId' element={<EventDetail />}/>
+                <Route path='profile' element={<Profile />}/>
             </Route>
 
             <Route element={<PublicRoute restricted />}>

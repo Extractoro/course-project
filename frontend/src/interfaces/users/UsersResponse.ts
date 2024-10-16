@@ -14,3 +14,12 @@ export interface UserData {
     role: 'user' | 'admin',
     verify: boolean
 }
+
+export interface UserRequest {
+    user_id: number
+    firstname: string;
+    lastname: string;
+    phone?: string;
+    email: string;
+    password?: string;
+}

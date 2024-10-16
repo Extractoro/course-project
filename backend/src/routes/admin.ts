@@ -8,8 +8,8 @@ import database from "../utils/database";
 dotenv.config();
 const router = Router();
 
-// router.use(authMiddleware)
-// router.use(adminMiddleware)
+router.use(authMiddleware)
+router.use(adminMiddleware)
 
 router.post("/create_event", controllersWrapper(async (req: Request, res: Response) => {
    const { venue_name, address, city, capacity, event_name, event_date, category, description = null, ticket_price, available_tickets } = req.body;

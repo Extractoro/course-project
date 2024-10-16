@@ -7,7 +7,7 @@ import database from "../utils/database";
 dotenv.config();
 const router = Router();
 
-// router.use(authMiddleware)
+router.use(authMiddleware)
 
 router.get("/events", controllersWrapper(async (req: Request, res: Response) => {
     const getAllEventsQuery = `
