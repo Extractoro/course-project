@@ -4,12 +4,15 @@ import './UserForm.scss'
 import {UsersResponse} from "../../interfaces/users/UsersResponse.ts";
 import {toast} from "react-toastify";
 import {useUpdateUserMutation} from "../../redux/user/users_api.ts";
+import Cookies from "js-cookie";
+import {useNavigate} from "react-router-dom";
 
 type UserFormProps = {
     userInfo: UsersResponse
 }
 
 const UserForm: FC<UserFormProps> = ({userInfo}) => {
+    const navigate = useNavigate();
     const [updateUser] = useUpdateUserMutation()
 
     if (!userInfo?.results) {
@@ -24,6 +27,13 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
     const [phone, setPhone] = useState(userInfo?.results[0]?.phone || '')
     const [password, setPassword] = useState('')
     const [show, setShow] = useState(false);
+    const [isClicked, setIsClicked] = useState(false);
+
+    const handleClickDisable = () => {
+        setIsClicked(prevState => {
+            return !prevState;
+        });
+    }
 
     const handleClick = () => setShow(!show);
 
@@ -34,7 +44,7 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
             case 'firstname':
                 setFirstname(value);
                 break;
-            case 'setLastname':
+            case 'lastname':
                 setLastname(value);
                 break;
             case 'email':
@@ -61,12 +71,23 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
         }
 
         const user_id: number = userInfo?.results[0]?.user_id
+        const oldEmail = userInfo?.results[0]?.email
 
         try {
             await updateUser({user_id, firstname, lastname, email, phone, password}).unwrap()
-            toast.success('You successfully update profile!', {
-                autoClose: 2000,
-            });
+
+            if (oldEmail === email) {
+                toast.success('You successfully update profile! Reload a page.', {
+                    autoClose: 2000,
+                });
+            } else {
+                toast.success('You successfully update profile! Check your email.', {
+                    autoClose: 2000,
+                });
+                Cookies.remove('token', {secure: true, sameSite: 'Strict'});
+                navigate('/signin')
+            }
+
             reset()
         } catch (err: any) {
             if (err.data?.message) {
@@ -93,28 +114,28 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
                 <div className='user-form-container'>
                     <label className='user-form-label' htmlFor="firstname">Firstname</label>
                     <input className='user-form-input' onChange={handleChange} type="text" id="firstname"
-                           name="quantity"
+                           name="firstname"
                            value={firstname} pattern=".{1,50}"
                            title="Firstname must not exceed 50 characters." required/>
                 </div>
                 <div className='user-form-container'>
                     <label className='user-form-label' htmlFor="lastname">Lastname</label>
                     <input className='user-form-input' onChange={handleChange} type="text" id="lastname"
-                           name="quantity"
+                           name="lastname"
                            value={lastname} pattern=".{1,50}"
                            title="Lastname must not exceed 50 characters." required/>
                 </div>
                 <div className='user-form-container'>
                     <label className='user-form-label' htmlFor="phone">Phone</label>
                     <input className='user-form-input' onChange={handleChange} type="tel" id="phone"
-                           name="quantity"
+                           name="phone"
                            value={phone} pattern="^[0-9]{10,20}$"
                            title="Phone number must be between 10 and 20 digits."/>
                 </div>
                 <div className='user-form-container'>
                     <label className='user-form-label' htmlFor="email">Email</label>
                     <input className='user-form-input' onChange={handleChange} type="email" id="email"
-                           name="quantity"
+                           name="email"
                            value={email} pattern=".{1,100}"
                            title="Email must not exceed 100 characters." required/>
                 </div>
@@ -134,7 +155,9 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
                         </button>
                     </div>
                 </div>
-                <button className='user-form-button' type="submit">Change profile</button>
+                <button className={`user-form-button ${isClicked ? 'profile__info-button-disabled' : ''}`} type="submit"
+                         onClick={handleClickDisable} disabled={isClicked}>Change profile
+                </button>
             </form>
         </div>
     )

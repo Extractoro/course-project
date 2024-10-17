@@ -13,7 +13,7 @@ const SignupConfirm = () => {
     console.log(verificationToken)
 
     if (!verificationToken || verificationToken === '') {
-        toast.error('Something went wrong!');
+        toast.error('Verification token does not provided!');
     }
 
     useEffect(() => {

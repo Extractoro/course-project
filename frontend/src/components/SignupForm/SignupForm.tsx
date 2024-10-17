@@ -63,7 +63,7 @@ const SignupForm = () => {
                 autoClose: 2000,
             });
         } catch (err: any) {
-            toast.error('Failed to resend confirmation email.', {
+            toast.error('No unverified user found with this email address. Please write to support!', {
                 autoClose: 2000,
             });
         }
