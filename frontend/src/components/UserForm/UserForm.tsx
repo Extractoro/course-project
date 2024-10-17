@@ -19,7 +19,6 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
         toast.error("Something went wrong!");
         return
     }
-    // ???
 
     const [firstname, setFirstname] = useState(userInfo?.results[0]?.user_firstname || '')
     const [lastname, setLastname] = useState(userInfo?.results[0]?.user_lastname || '')
@@ -27,13 +26,7 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
     const [phone, setPhone] = useState(userInfo?.results[0]?.phone || '')
     const [password, setPassword] = useState('')
     const [show, setShow] = useState(false);
-    const [isClicked, setIsClicked] = useState(false);
-
-    const handleClickDisable = () => {
-        setIsClicked(prevState => {
-            return !prevState;
-        });
-    }
+    const [isSubmitting, setIsSubmitting] = useState(false); // Состояние загрузки
 
     const handleClick = () => setShow(!show);
 
@@ -57,7 +50,6 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
                 setPassword(value);
                 break;
 
-
             default:
                 return;
         }
@@ -65,48 +57,52 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
         if (!userInfo?.results) {
             toast.error("Something went wrong!");
-            return
+            return;
         }
 
-        const user_id: number = userInfo?.results[0]?.user_id
-        const oldEmail = userInfo?.results[0]?.email
+        const user_id: number = userInfo?.results[0]?.user_id;
+        const oldEmail = userInfo?.results[0]?.email;
 
         try {
-            await updateUser({user_id, firstname, lastname, email, phone, password}).unwrap()
+            setIsSubmitting(true); // Начало отправки
+            await updateUser({user_id, firstname, lastname, email, phone, password}).unwrap();
 
             if (oldEmail === email) {
-                toast.success('You successfully update profile! Reload a page.', {
+                toast.success('You successfully updated your profile! Reload the page.', {
                     autoClose: 2000,
                 });
             } else {
-                toast.success('You successfully update profile! Check your email.', {
+                toast.success('You successfully updated your profile! Check your email.', {
                     autoClose: 2000,
                 });
                 Cookies.remove('token', {secure: true, sameSite: 'Strict'});
-                navigate('/signin')
+                navigate('/signin');
             }
 
-            reset()
+            reset();
         } catch (err: any) {
             if (err.data?.message) {
                 toast.error(`${err.data?.message}`, {
                     autoClose: 2000,
                 });
             }
+        } finally {
+            setIsSubmitting(false); // Конец отправки
         }
-    }
+    };
 
     const reset = () => {
         if (userInfo?.results) {
-            setFirstname(userInfo?.results[0]?.user_firstname)
-            setLastname(userInfo?.results[0]?.user_lastname)
-            setPhone(userInfo?.results[0]?.phone)
-            setEmail(userInfo?.results[0]?.email)
+            setFirstname(userInfo?.results[0]?.user_firstname);
+            setLastname(userInfo?.results[0]?.user_lastname);
+            setPhone(userInfo?.results[0]?.phone);
+            setEmail(userInfo?.results[0]?.email);
             setPassword('');
         }
-    }
+    };
 
     return (
         <div>
@@ -151,15 +147,19 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
                             className='user-form-input--button'
                             onClick={handleClick}
                         >
-                            {show ? <FaRegEyeSlash size={18}/> : <FaRegEye size={18}/>}
+                            {show ? <FaRegEyeSlash size={18}/> : <FaRegEye size={18}/> }
                         </button>
                     </div>
                 </div>
-                <button className={`user-form-button ${isClicked ? 'profile__info-button-disabled' : ''}`} type="submit"
-                         onClick={handleClickDisable} disabled={isClicked}>Change profile
+                <button
+                    className={`user-form-button ${isSubmitting ? 'profile__info-button-disabled' : ''}`}
+                    type="submit"
+                    disabled={isSubmitting}>
+                    {isSubmitting ? 'Submitting...' : 'Change profile'}
                 </button>
             </form>
         </div>
     )
 }
-export default UserForm
+
+export default UserForm;

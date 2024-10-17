@@ -4,28 +4,31 @@ import authMiddleware from "../middlewares/authMiddleware";
 import controllersWrapper from "../helpers/controllersWrapper";
 import transporter from "../utils/emailSender";
 import bcrypt from "bcrypt";
-import database from "../utils/database";
+import {getConnection} from "../utils/database";
 import { v4 as uuidv4 } from 'uuid';
 import jwt, {JwtPayload} from "jsonwebtoken";
+import {PoolConnection} from "mysql";
 
 dotenv.config();
 const router = Router();
 
 router.use(authMiddleware)
 
-router.get("/current", controllersWrapper((req: Request, res: Response) => {
-    database.getConnection( function(err, connection) {
-        const authHeader = req.headers.authorization ?? ""
-        const [tokenType, token] = authHeader.split(" ");
+router.get("/current", controllersWrapper(async (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization ?? "";
+    const [tokenType, token] = authHeader.split(" ");
 
-        if (!token || !tokenType) {
-            res.status(401).send({
-                status: 401,
-                success: false,
-                message: "No token provided or invalid token!"
-            })
-        }
+    if (!token || !tokenType) {
+        return res.status(401).send({
+            status: 401,
+            success: false,
+            message: "No token provided or invalid token!"
+        });
+    }
 
+    let connection: PoolConnection | null = null;
+
+    try {
         const decoded = jwt.decode(token) as JwtPayload;
 
         if (!decoded || typeof decoded === 'string' || !decoded.email) {
@@ -36,25 +39,43 @@ router.get("/current", controllersWrapper((req: Request, res: Response) => {
             });
         }
 
+        connection = await getConnection();
+
         const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, phone, role, verify FROM users WHERE email = ?`;
 
-        connection.query(sqlQuery, [decoded?.email], function (err, rows) {
-            if (err) {
-                return res.status(400).send({
-                    status: 400,
-                    success: false,
-                    message: err.message,
-                });
-            }
-
-            return res.status(200).send({
-                status: 200,
-                success: true,
-                results: rows,
+        const user = await new Promise<any[]>((resolve, reject) => {
+            connection!.query(sqlQuery, [decoded.email], (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
             });
-        })
-    })
-}))
+        });
+
+        if (user.length === 0) {
+            return res.status(404).send({
+                status: 404,
+                success: false,
+                message: 'User not found!',
+            });
+        }
+
+        res.status(200).send({
+            status: 200,
+            success: true,
+            results: user,
+        });
+
+    } catch (err) {
+        res.status(500).send({
+            status: 500,
+            success: false,
+            message: 'Internal Server Error',
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+}));
 
 router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Response) => {
     const user_id: number = Number(req.params.id);
@@ -65,76 +86,78 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
 
     const { firstname, lastname, phone, email, password } = req.body;
 
-    const getUserQuery = `SELECT email FROM users WHERE user_id = ?`;
+    let connection: PoolConnection | null = null;
 
-    database.getConnection(function (err, connection) {
-        if (err) {
-            return res.status(500).send({
-                status: 500,
+    try {
+        connection = await getConnection();
+
+        const getUserQuery = `SELECT email FROM users WHERE user_id = ?`;
+        const [user] = await new Promise<any[]>((resolve, reject) => {
+            connection!.query(getUserQuery, [user_id], (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            });
+        });
+
+        if (!user) {
+            return res.status(404).send({
+                status: 404,
                 success: false,
-                message: err.message,
+                message: 'User not found',
             });
         }
 
-        connection.query(getUserQuery, [user_id], async function (err, result) {
-            if (err) {
-                return res.status(500).send({
-                    status: 500,
-                    success: false,
-                    message: err.message,
-                });
-            }
+        const oldEmail = user.email;
+        const emailChanged = oldEmail !== email;
+        let verificationToken = emailChanged ? uuidv4() : null;
 
-            const oldEmail = result[0]?.email;
-            const emailChanged = oldEmail !== email;
+        let hashedPassword: string | null = null;
+        if (password) {
+            const saltRounds = 10;
+            hashedPassword = await bcrypt.hash(password, saltRounds);
+        }
 
-            let verificationToken = null;
-            if (emailChanged) {
-                verificationToken = uuidv4();
-            }
+        const updateUserQuery = `
+            UPDATE users
+            SET user_firstname = ?, user_lastname = ?, email = ?, phone = ?, 
+                password = COALESCE(?, password), 
+                verificationToken = COALESCE(?, verificationToken), 
+                verify = ?
+            WHERE user_id = ?
+        `;
 
-            let hashedPassword: string | null = null;
-            if (password) {
-                const saltRounds = 10;
-                hashedPassword = await bcrypt.hash(password, saltRounds);
-            }
+        const result = await new Promise<any>((resolve, reject) => {
+            connection!.query(updateUserQuery, [
+                firstname, lastname, email, phone, hashedPassword,
+                verificationToken, emailChanged ? 0 : 1, user_id
+            ], (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            });
+        });
 
-            const updateUserQuery = `UPDATE users
-                                     SET user_firstname = ?, user_lastname = ?, email = ?, phone = ?, password = COALESCE(?, password), verificationToken = COALESCE(?, verificationToken), verify = ?
-                                     WHERE user_id = ?`;
+        if (result.affectedRows === 0) {
+            return res.status(404).send({
+                status: 404,
+                success: false,
+                message: 'User not found',
+            });
+        }
 
-            connection.query(updateUserQuery, [firstname, lastname, email, phone, hashedPassword, verificationToken, emailChanged ? 0 : 1, user_id], async function (err, result) {
-                if (err) {
-                    return res.status(500).send({
-                        status: 500,
-                        success: false,
-                        message: err.message,
-                    });
-                }
-
-                if ((result as any).affectedRows === 0) {
-                    return res.status(404).send({
-                        status: 404,
-                        success: false,
-                        message: 'User not found',
-                    });
-                }
-
-                if (emailChanged) {
-                    await transporter.sendMail({
-                        to: email,
-                        from: "EventNest <vadym.tytarenko@nure.ua>",
-                        subject: "Confirm your new email for EventNest",
-                        html: `
-                     <!DOCTYPE html>
-                     <html lang="en">
-                     <head>
+        if (emailChanged) {
+            await transporter.sendMail({
+                to: email,
+                from: "EventNest <vadym.tytarenko@nure.ua>",
+                subject: "Confirm your new email for EventNest",
+                html: `
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
                         <meta charset="UTF-8">
-                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>Email Confirmation - EventNest</title>
                         <style>
-                           body {
+                             body {
                               font-family: Arial, sans-serif;
                               background-color: #f4f4f4;
                               margin: 0;
@@ -180,41 +203,39 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
                               font-size: 12px;
                            }
                         </style>
-                     </head>
-                     <body>
-                        <div class="container">
-                           <div class="content">
-                              <div class="header">
-                                 <h1>Confirm Your New Email Address</h1>
-                              </div>
-                              <p>Hello, ${firstname} ${lastname}!</p>
-                              <p>It looks like you've changed your email for your <strong>EventNest</strong> account. Please confirm your new email address by clicking the button below.</p>
-                              <div style="text-align: center; margin: 20px 0;">
-                                 <a href="${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
-                              </div>
-                              <p>If the button doesn't work, copy and paste the following URL into your browser's address bar:</p>
-                              <p>${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}</p>
-                              <p>If you did not request this change, please contact support immediately.</p>
-                              <p>Best regards,<br>The EventNest Team</p>
-                           </div>
-                           <div class="footer">
-                              <p>&copy; 2024 EventNest. All rights reserved.</p>
-                           </div>
+                    </head>
+                    <body>
+                        <div>
+                            <p>Hello, ${firstname} ${lastname}!</p>
+                            <p>It looks like you've changed your email for your EventNest account. Please confirm your new email address by clicking the button below.</p>
+                            <a href="${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}">Confirm Email</a>
+                            <p>If the button doesn't work, copy and paste the following URL into your browser's address bar:</p>
+                            <p>${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}</p>
+                            <p>Best regards,<br>The EventNest Team</p>
                         </div>
-                     </body>
-                     </html>
-                  `,
-                    });
-                }
-
-                res.status(200).send({
-                    status: 200,
-                    success: true,
-                    message: emailChanged ? 'User updated successfully! Please confirm your new email.' : 'User updated successfully!',
-                });
+                    </body>
+                    </html>
+                `,
             });
+        }
+
+        res.status(200).send({
+            status: 200,
+            success: true,
+            message: emailChanged ? 'User updated successfully! Please confirm your new email.' : 'User updated successfully!',
         });
-    });
+
+    } catch (err) {
+        res.status(500).send({
+            status: 500,
+            success: false,
+            message: 'Internal Server Error',
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
 }));
 
 
