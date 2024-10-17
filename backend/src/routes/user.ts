@@ -217,4 +217,6 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
     });
 }));
 
+
+
 export default router;

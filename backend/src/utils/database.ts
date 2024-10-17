@@ -1,4 +1,4 @@
-import mysql from "mysql";
+import mysql, {PoolConnection} from "mysql";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,4 +10,13 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 })
 
-export default pool;
+const getConnection = (): Promise<PoolConnection> => {
+    return new Promise((resolve, reject) => {
+        pool.getConnection((err, connection) => {
+            if (err) return reject(err);
+            resolve(connection);
+        });
+    });
+};
+
+export { getConnection };
