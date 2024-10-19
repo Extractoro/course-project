@@ -10,7 +10,7 @@ dotenv.config();
 const router = Router();
 
 router.use(authMiddleware)
-router.use(adminMiddleware)
+// router.use(adminMiddleware)
 
 router.post("/create_event", controllersWrapper(async (req: Request, res: Response) => {
    const {
@@ -49,7 +49,7 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
          });
       }
 
-      const categoryId = categoryRows[0].category_id;
+      const categoryId = categoryRows.category_id;
 
       const checkEventQuery = `
             SELECT * FROM events 
@@ -68,7 +68,7 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
          });
       });
 
-      if (eventRows.length > 0) {
+      if (eventRows && eventRows.length > 0) {
          return res.status(409).send({
             status: 409,
             success: false,
@@ -122,11 +122,11 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
          });
       });
 
-   } catch (err) {
+   } catch (err: any) {
       res.status(500).send({
          status: 500,
          success: false,
-         message: 'Internal Server Error',
+         message: err?.message,
       });
    } finally {
       if (connection) {
@@ -247,6 +247,7 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
                   res.status(200).send({
                      success: true,
                      message: 'Event and Venue updated successfully!',
+                     status: 200,
                   });
                   resolve();
                });
@@ -339,6 +340,7 @@ router.delete("/delete_event/:id", controllersWrapper(async (req: Request, res: 
                   res.status(200).send({
                      success: true,
                      message: 'Event deleted successfully!',
+                     status: 200
                   });
                   resolve();
                });

@@ -2,7 +2,7 @@ import { useFetchCategoriesQuery, useFetchEventsQuery } from "../../redux/fetch/
 import './Events.scss';
 import { EventData } from "../../interfaces/fetch/EventResponse.ts";
 import { CategoriesData } from "../../interfaces/fetch/CategoryResponse.ts";
-import { Link } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import { FaXmark } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import {ChangeEvent, useEffect, useState} from "react";
@@ -11,6 +11,7 @@ import {useSelector} from "react-redux";
 import {selectUserRole} from "../../redux/auth/auth_selector.ts";
 
 const Events = () => {
+    const navigate = useNavigate();
     const role = useSelector(selectUserRole);
     const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
     const { data: categoriesData } = useFetchCategoriesQuery();
@@ -20,6 +21,8 @@ const Events = () => {
     const [categoryFilter, setCategoryFilter] = useState('');
     const [addressFilter, setAddressFilter] = useState('');
     const [minPriceFilter, setMinPriceFilter] = useState('');
+    const currentUser = useSelector(selectUserRole);
+    const isAdmin = currentUser === 'admin';
 
     const filteredEvents = eventsData?.data?.filter((event: EventData) => {
         const matchesCity = cityFilter ? event.city.toLowerCase().includes(cityFilter.toLowerCase()) : true;
@@ -92,6 +95,10 @@ const Events = () => {
         }
     };
 
+    const handleAddEvent = () => {
+        navigate('/admin/create_event')
+    }
+
     return (
         <>
             {eventsLoading && <p>Loading events... Please wait.</p>}
@@ -138,10 +145,14 @@ const Events = () => {
                         </div>
                     </div>
                     <div className={`events-menu ${isMenuOpen ? "events-menu--open" : "events-menu--closed"}`}>
-                        <select className='events-background--input-filter category-select' value={categoryFilter} onChange={handleInputChange} name='category'>
-                            <option value="" disabled hidden>Choose category</option>
+                        <select className='events-background--input-filter category-select' value={categoryFilter}
+                                onChange={handleInputChange} name='category'>
+                            <option value="" disabled>
+                                -- Select a category --
+                            </option>
                             {categoriesData && categoriesData.data.map((category: any) => (
-                                <option key={category.category_id} value={category.category_name}>{category.category_name}</option>
+                                <option key={category.category_id}
+                                        value={category.category_name}>{category.category_name}</option>
                             ))}
                         </select>
 
@@ -162,14 +173,21 @@ const Events = () => {
                             value={minPriceFilter}
                             onChange={handleInputChange}
                         />
+
+                        {isAdmin &&
+                            <button className="event-card__button-add" onClick={handleAddEvent}>Add ticket</button>}
                     </div>
 
                     <div className='events__container--desktop'>
                         <div className='events-menu--desktop'>
-                            <select className='events-background--input-filter category-select' value={categoryFilter} onChange={handleInputChange} name='category'>
-                                <option value="" disabled hidden>Choose category</option>
+                            <select className='events-background--input-filter category-select' value={categoryFilter}
+                                    onChange={handleInputChange} name='category'>
+                                <option value="" disabled>
+                                    -- Select a category --
+                                </option>
                                 {categoriesData && categoriesData.data.map((category: any) => (
-                                    <option key={category.category_id} value={category.category_name}>{category.category_name}</option>
+                                    <option key={category.category_id}
+                                            value={category.category_name}>{category.category_name}</option>
                                 ))}
                             </select>
 
@@ -190,6 +208,9 @@ const Events = () => {
                                 value={minPriceFilter}
                                 onChange={handleInputChange}
                             />
+
+                            {isAdmin &&
+                                <button className="event-card__button-add" onClick={handleAddEvent}>Add ticket</button>}
                         </div>
                         <div className='events-list' id='events-list'>
                             {filteredEvents.length > 0 ? (
