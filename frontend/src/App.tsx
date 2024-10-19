@@ -13,6 +13,7 @@ import PrivateRoute from "./services/PrivateRoute.tsx";
 import PublicRoute from "./services/PublicRoute.tsx";
 import EventDetail from "./pages/EventDetail/EventDetail.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
+import UserTickets from "./pages/UserTickets/UserTickets.tsx";
 
 const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/">
@@ -20,6 +21,7 @@ const router = createBrowserRouter(createRoutesFromElements(
                 <Route index element={<Home/>}/>
                 <Route path='events/:eventId' element={<EventDetail />}/>
                 <Route path='profile' element={<Profile />}/>
+                <Route path='user_tickets' element={<UserTickets />}/>
             </Route>
 
             <Route element={<PublicRoute restricted />}>

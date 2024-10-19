@@ -592,7 +592,7 @@ router.post('/login', controllersWrapper(async (req: Request, res: Response) => 
     try {
         connection = await getConnection(); // Получаем соединение
 
-        const sqlQuery = `SELECT user_firstname, user_lastname, email, password
+        const sqlQuery = `SELECT user_firstname, user_lastname, email, password, role
                           FROM users
                           WHERE verify = 1
                             AND email = ?`;
@@ -613,7 +613,7 @@ router.post('/login', controllersWrapper(async (req: Request, res: Response) => 
             });
         }
 
-        const { user_firstname, user_lastname, password: hash } = rows;
+        const { user_firstname, user_lastname, password: hash, role } = rows;
 
         const isPasswordValid = await bcrypt.compare(password, hash);
         if (!isPasswordValid) {
@@ -634,7 +634,7 @@ router.post('/login', controllersWrapper(async (req: Request, res: Response) => 
             status: 200,
             success: true,
             message: 'Success',
-            results: { token },
+            results: { token, role },
         });
 
     } catch (err) {

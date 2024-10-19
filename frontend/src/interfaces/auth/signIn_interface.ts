@@ -9,5 +9,6 @@ export interface SignInResponse {
     message: string;
     results: {
         token: string;
+        role: 'admin' | 'user';
     }
 }

@@ -135,7 +135,6 @@ router.post("/return_tickets", controllersWrapper(async (req: Request, res: Resp
         connection = await getConnection();
         await connection.beginTransaction();
 
-        // Check how many tickets the user has booked for the specific event
         const [result] = await new Promise<any[]>((resolve, reject) => {
             connection!.query(getUserTicketsQuery, [user_id, event_id], (err, results) => {
                 if (err) return reject(err);
@@ -143,7 +142,7 @@ router.post("/return_tickets", controllersWrapper(async (req: Request, res: Resp
             });
         });
 
-        const bookedTickets = result[0]?.booked_tickets || 0;
+        const bookedTickets = result?.booked_tickets || 0;
 
         if (quantity > bookedTickets) {
             throw new Error(`You cannot return more tickets than you have booked. You have only ${bookedTickets} tickets booked.`);

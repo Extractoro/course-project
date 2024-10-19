@@ -6,7 +6,7 @@ export interface UserTicketsResponse {
     status: number;
     success: boolean;
     message?: string;
-    data?: UserTicketsData[];
+    data: UserTicketsData[];
 }
 
 export interface UserTicketsData {

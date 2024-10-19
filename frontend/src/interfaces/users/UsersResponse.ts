@@ -2,7 +2,7 @@ export interface UsersResponse {
     status: number;
     success: boolean;
     message?: string;
-    results?: UserData[];
+    results: UserData[];
 }
 
 export interface UserData {

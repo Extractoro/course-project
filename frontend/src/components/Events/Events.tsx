@@ -7,8 +7,11 @@ import { FaXmark } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import {ChangeEvent, useEffect, useState} from "react";
 import { DateTime } from 'luxon';
+import {useSelector} from "react-redux";
+import {selectUserRole} from "../../redux/auth/auth_selector.ts";
 
 const Events = () => {
+    const role = useSelector(selectUserRole);
     const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
     const { data: categoriesData } = useFetchCategoriesQuery();
     const [cityFilter, setCityFilter] = useState('');
@@ -37,6 +40,8 @@ const Events = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
+        console.log(role)
+
         const handleResize = () => {
             if (window.innerWidth >= 1200) {
                 setIsMenuOpen(false);
