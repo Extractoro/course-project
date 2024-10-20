@@ -12,7 +12,6 @@ import {selectUserRole} from "../../redux/auth/auth_selector.ts";
 
 const Events = () => {
     const navigate = useNavigate();
-    const role = useSelector(selectUserRole);
     const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
     const { data: categoriesData } = useFetchCategoriesQuery();
     const [cityFilter, setCityFilter] = useState('');

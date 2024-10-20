@@ -1,7 +1,7 @@
 import './EventInfo.scss';
 import { useFetchCategoriesQuery, useFetchEventsQuery } from "../../redux/fetch/fetch_api.ts";
 import { useNavigate, useParams } from "react-router-dom";
-import {ChangeEvent, FormEvent, MouseEventHandler, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import { CategoriesData } from "../../interfaces/fetch/CategoryResponse.ts";
 import { DateTime } from "luxon";
 import TicketsForm from "../TicketsForm/TicketsForm.tsx";
@@ -49,7 +49,7 @@ const EventInfo = () => {
         setIsBookFormVisible(false);
     };
 
-    const handleDeleteClick = async (e: MouseEventHandler<HTMLButtonElement>) => {
+    const handleDeleteClick = async () => {
         if (!isAdmin) {
             toast.error('You do not have permission to delete events.', {
                 autoClose: 2000,
