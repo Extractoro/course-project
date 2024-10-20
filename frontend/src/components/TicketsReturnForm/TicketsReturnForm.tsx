@@ -21,9 +21,6 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({ userInfo, ticketsInfo }
         const userTickets = ticketsInfo?.data.filter(ticket => ticket.event_id === Number(event_id)) || [];
         const totalUserTickets = userTickets.length;
 
-        console.log(totalUserTickets)
-
-
         if (quantity > totalUserTickets) {
             toast.error(`You cannot return more tickets than you have. You have ${totalUserTickets} tickets for this event.`, {
                 autoClose: 2000,

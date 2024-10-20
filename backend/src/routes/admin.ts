@@ -178,7 +178,7 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
          });
       }
 
-      const categoryId = categoryRows[0].category_id;
+      const categoryId = categoryRows.category_id;
 
       const checkEventQuery = `
             SELECT * FROM events 
@@ -198,13 +198,14 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
          });
       });
 
-      if (eventRows.length > 0) {
+      if (eventRows && eventRows.length > 0) {
          return res.status(409).send({
             status: 409,
             success: false,
             message: 'Event with the same name, date, and venue already exists',
          });
       }
+
 
       const updateVenueQuery = `
             UPDATE venues 
@@ -296,14 +297,14 @@ router.delete("/delete_event/:id", controllersWrapper(async (req: Request, res: 
                   });
                });
 
-               if (result.length === 0) {
+               if (result && result.length === 0) {
                   return connection!.rollback(() => {
                      reject(new Error('Event not found'));
                   });
                }
 
-               const venue_id = result[0].venue_id;
-
+               const venue_id = result.venue_id;
+               
                const deleteEventQuery = `DELETE FROM events WHERE event_id = ?`;
                await new Promise<void>((resolve, reject) => {
                   connection!.query(deleteEventQuery, [event_id], (err) => {
@@ -320,7 +321,7 @@ router.delete("/delete_event/:id", controllersWrapper(async (req: Request, res: 
                   });
                });
 
-               if (usageResult[0].count === 0) {
+               if (usageResult.count === 0) {
                   const deleteVenueQuery = `DELETE FROM venues WHERE venue_id = ?`;
                   await new Promise<void>((resolve, reject) => {
                      connection!.query(deleteVenueQuery, [venue_id], (err) => {

@@ -1,15 +1,21 @@
-import {ChangeEvent, FormEvent, useEffect, useState} from "react";
+import {ChangeEvent, FC, FormEvent, useEffect, useState} from "react";
 import {toast} from "react-toastify";
-import {useCreateEventMutation} from "../../redux/admin/admin_api.ts";
+import {useUpdateEventMutation} from "../../redux/admin/admin_api.ts";
 import {useFetchCategoriesQuery} from "../../redux/fetch/fetch_api.ts";
-import './EventAddEvent.scss'
 import {useSelector} from "react-redux";
 import {selectUserRole} from "../../redux/auth/auth_selector.ts";
 import {useNavigate} from "react-router-dom";
+import './TicketsFormEdit.scss'
+import {EventData} from "../../interfaces/fetch/EventResponse.ts";
 
-const EventAddForm = () => {
+type TicketsFormEditProps = {
+    eventById: EventData | undefined,
+    categoryName: string
+}
+
+const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) => {
     const navigate = useNavigate();
-    const [createEvent] = useCreateEventMutation();
+    const [updateEvent] = useUpdateEventMutation();
     const {data: categoriesData, isLoading: categoriesLoading, isError: categoriesError} = useFetchCategoriesQuery();
 
     const currentUser = useSelector(selectUserRole);
@@ -22,16 +28,16 @@ const EventAddForm = () => {
     }, []);
 
     const [formData, setFormData] = useState({
-        venueName: '',
-        address: '',
-        city: '',
-        capacity: 1,
-        eventName: '',
-        eventDate: '',
-        category: '',
-        description: '',
-        ticketPrice: 0,
-        availableTickets: 1
+        venueName: eventById?.venue_name || '',
+        address: eventById?.address || '',
+        city: eventById?.city || '',
+        capacity: eventById?.capacity || 1,
+        eventName: eventById?.event_name || '',
+        eventDate: eventById?.event_date || '',
+        category: categoryName || '',
+        description: eventById?.description || '',
+        ticketPrice: eventById?.ticket_price || 0,
+        availableTickets: eventById?.available_tickets || 1
     });
 
     const formFields = [
@@ -65,18 +71,19 @@ const EventAddForm = () => {
         e.preventDefault();
 
         if (!isAdmin) {
-            toast.error('You do not have permission to create events.', {
+            toast.error('You do not have permission to edit events.', {
                 autoClose: 2000,
             });
             return;
         }
 
         try {
-            await createEvent({
+            await updateEvent({
                 venue_name: formData.venueName,
                 address: formData.address,
                 city: formData.city,
                 capacity: formData.capacity,
+                event_id: Number(eventById?.event_id),
                 event_name: formData.eventName,
                 event_date: formData.eventDate,
                 category: formData.category,
@@ -88,6 +95,8 @@ const EventAddForm = () => {
             toast.success('Event created successfully!', {
                 autoClose: 2000,
             });
+            navigate('/')
+            window.location.reload()
             resetForm();
         } catch (err: any) {
             toast.error('Something went wrong', {
@@ -110,21 +119,20 @@ const EventAddForm = () => {
             availableTickets: 1
         });
     };
-
     return (
         <>
             {!isAdmin ?
-                <div className='eventAdd-form--container'>
+                <div className='eventEdit-form--container'>
                     <p>You are not an admin!</p>
-                </div> : (<div className='eventAdd-form--container'>
-                    <form className='eventAdd-form__form' onSubmit={handleSubmit}>
+                </div> : (<div className='eventEdit-form--container'>
+                    <form className='eventEdit-form__form' onSubmit={handleSubmit}>
                         {formFields.map((field) => (
-                            <div className='eventAdd-form__form-container' key={field.name}>
-                                <label className='eventAdd-form__form-label' htmlFor={field.name}>
+                            <div className='eventEdit-form__form-container' key={field.name}>
+                                <label className='eventEdit-form__form-label' htmlFor={field.name}>
                                     {field.label}
                                 </label>
                                 <input
-                                    className='eventAdd-form__form-input'
+                                    className='eventEdit-form__form-input'
                                     type={field.type}
                                     id={field.name}
                                     name={field.name}
@@ -137,15 +145,15 @@ const EventAddForm = () => {
                             </div>
                         ))}
 
-                        <div className='eventAdd-form__form-container'>
-                            <label className='eventAdd-form__form-label' htmlFor="category">Category</label>
+                        <div className='eventEdit-form__form-container'>
+                            <label className='eventEdit-form__form-label' htmlFor="category">Category</label>
                             {categoriesLoading ? (
                                 <p>Loading categories...</p>
                             ) : categoriesError ? (
                                 <p>Error loading categories</p>
                             ) : (
                                 <select
-                                    className='eventAdd-form__form-input'
+                                    className='eventEdit-form__form-input'
                                     id="category"
                                     name="category"
                                     value={formData.category}
@@ -164,14 +172,12 @@ const EventAddForm = () => {
                             )}
                         </div>
 
-                        <button className='eventAdd-form__form-button' type="submit">Create Event</button>
+                        <button className='eventEdit-form__form-button' type="submit">Edit Event</button>
                     </form>
                 </div>)
             }
 
         </>
-
-    );
-};
-
-export default EventAddForm;
+    )
+}
+export default TicketsFormEdit

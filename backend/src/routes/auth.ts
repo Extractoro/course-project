@@ -263,14 +263,9 @@ router.post("/confirmation_resend", controllersWrapper(async (req: Request, res:
         const [rows] = await new Promise<any[]>((resolve, reject) => {
             connection!.query(sqlSelect, [emailReceiver], (err, results) => {
                 if (err) return reject(err);
-                console.log(results)
-
                 resolve(results);
             });
         });
-
-        console.log(rows)
-
 
         if (!rows) {
             return res.status(400).send({

@@ -1,6 +1,7 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
 import {
+    AdminDeleteRequestInterface,
     AdminRequestInterface,
     AdminResponseInterface
 } from "../../interfaces/admin/admin_interface.ts";
@@ -33,11 +34,10 @@ export const adminApi = createApi({
                 body
             }),
         }),
-        deleteEvent: builder.mutation<AdminResponseInterface, AdminRequestInterface>({
+        deleteEvent: builder.mutation<AdminResponseInterface, AdminDeleteRequestInterface>({
             query: body => ({
                 url: `/admin/delete_event/${body.event_id}`,
                 method: 'DELETE',
-                body
             }),
         }),
     })

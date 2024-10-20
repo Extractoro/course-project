@@ -43,8 +43,6 @@ const Events = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
-        console.log(role)
-
         const handleResize = () => {
             if (window.innerWidth >= 1200) {
                 setIsMenuOpen(false);
@@ -96,6 +94,7 @@ const Events = () => {
     };
 
     const handleAddEvent = () => {
+        document.body.classList.remove('no-scroll');
         navigate('/admin/create_event')
     }
 
@@ -216,7 +215,6 @@ const Events = () => {
                             {filteredEvents.length > 0 ? (
                                 filteredEvents.map((event: EventData) => {
                                     const categoryName = categoriesData?.data?.find((category: CategoriesData) => category.category_id === event.category_id)?.category_name || '';
-
                                     return (
                                         <Link to={`/events/${event.event_id}`} className="event-card" key={event.event_id}>
                                             <div className="event-card__image">

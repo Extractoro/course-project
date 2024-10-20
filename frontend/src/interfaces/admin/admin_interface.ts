@@ -12,6 +12,10 @@ export interface AdminRequestInterface {
     available_tickets: number;
 }
 
+export interface AdminDeleteRequestInterface {
+    event_id: number;
+}
+
 export interface AdminResponseInterface {
     status: number;
     success: boolean;

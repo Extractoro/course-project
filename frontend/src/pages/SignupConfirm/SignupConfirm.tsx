@@ -10,8 +10,6 @@ const SignupConfirm = () => {
     const [signUpConfirmation] = useSignUpConfirmationMutation()
     const {verificationToken = ''} = useParams<{ verificationToken: string }>();
 
-    console.log(verificationToken)
-
     if (!verificationToken || verificationToken === '') {
         toast.error('Verification token does not provided!');
     }

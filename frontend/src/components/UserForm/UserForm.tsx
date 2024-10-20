@@ -71,9 +71,10 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
             await updateUser({user_id, firstname, lastname, email, phone, password}).unwrap();
 
             if (oldEmail === email) {
-                toast.success('You successfully updated your profile! Reload the page.', {
+                toast.success('You successfully updated your profile!', {
                     autoClose: 2000,
                 });
+                window.location.reload();
             } else {
                 toast.success('You successfully updated your profile! Check your email.', {
                     autoClose: 2000,

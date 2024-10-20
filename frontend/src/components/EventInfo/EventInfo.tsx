@@ -1,19 +1,29 @@
-import './EventInfo.scss'
-import {useFetchCategoriesQuery, useFetchEventsQuery} from "../../redux/fetch/fetch_api.ts";
-import {useNavigate, useParams} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {CategoriesData} from "../../interfaces/fetch/CategoryResponse.ts";
-import {DateTime} from "luxon";
+import './EventInfo.scss';
+import { useFetchCategoriesQuery, useFetchEventsQuery } from "../../redux/fetch/fetch_api.ts";
+import { useNavigate, useParams } from "react-router-dom";
+import {ChangeEvent, FormEvent, MouseEventHandler, useEffect, useState} from "react";
+import { CategoriesData } from "../../interfaces/fetch/CategoryResponse.ts";
+import { DateTime } from "luxon";
 import TicketsForm from "../TicketsForm/TicketsForm.tsx";
-import {useCurrentUserQuery} from "../../redux/user/users_api.ts";
+import { useCurrentUserQuery } from "../../redux/user/users_api.ts";
+import { useSelector } from "react-redux";
+import { selectUserRole } from "../../redux/auth/auth_selector.ts";
+import TicketsFormEdit from "../TicketsFormEdit/TicketsFormEdit.tsx";
+import {toast} from "react-toastify";
+import {useDeleteEventMutation} from "../../redux/admin/admin_api.ts";
 
 const EventInfo = () => {
     const navigate = useNavigate();
-    const {data: eventsData, error: eventsError, isLoading: eventsLoading} = useFetchEventsQuery();
-    const {data: categoriesData} = useFetchCategoriesQuery();
-    const {data: userData} = useCurrentUserQuery();
-    const {eventId} = useParams<{ eventId: string }>();
-    const [isClicked, setIsClicked] = useState(false);
+    const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
+    const { data: categoriesData } = useFetchCategoriesQuery();
+    const { data: userData } = useCurrentUserQuery();
+    const [deleteEvent] = useDeleteEventMutation();
+    const { eventId } = useParams<{ eventId: string }>();
+    const [isBookFormVisible, setIsBookFormVisible] = useState(false);
+    const [isEditFormVisible, setIsEditFormVisible] = useState(false);
+
+    const currentUser = useSelector(selectUserRole);
+    const isAdmin = currentUser === 'admin';
 
     const eventById = eventsData?.data?.find(event => {
         return event?.event_id === Number(eventId);
@@ -29,11 +39,38 @@ const EventInfo = () => {
 
     const categoryName = categoriesData?.data?.find((category: CategoriesData) => category.category_id === eventById?.category_id)?.category_name || '';
 
-    const handleClick = () => {
-        setIsClicked(prevState => {
-            return !prevState;
-        });
-    }
+    const handleBookClick = () => {
+        setIsBookFormVisible(true);
+        setIsEditFormVisible(false);
+    };
+
+    const handleEditClick = () => {
+        setIsEditFormVisible(true);
+        setIsBookFormVisible(false);
+    };
+
+    const handleDeleteClick = async (e: MouseEventHandler<HTMLButtonElement>) => {
+        if (!isAdmin) {
+            toast.error('You do not have permission to delete events.', {
+                autoClose: 2000,
+            });
+            return;
+        }
+
+        try {
+            await deleteEvent({event_id: Number(eventId)}).unwrap();
+
+            toast.success('Event deleted successfully!', {
+                autoClose: 2000,
+            });
+            navigate('/')
+            window.location.reload()
+        } catch (err: any) {
+            toast.error('Something went wrong', {
+                autoClose: 2000,
+            });
+        }
+    };
 
     return (
         <>
@@ -56,20 +93,38 @@ const EventInfo = () => {
                             </p>
                             <p className='event__tickets-price'><strong>Price: </strong>{eventById.ticket_price} UAH</p>
                         </div>
-                        <button className={`event-info__button ${isClicked ? 'event-info__button-disabled' : ''}`}
-                                type='button' disabled={isClicked} onClick={handleClick}>Book
-                            ticket
+                        <button className={`event-info__button ${isBookFormVisible ? 'event-info__button-disabled' : ''}`}
+                                type='button' disabled={isBookFormVisible} onClick={handleBookClick}>
+                            Book ticket
                         </button>
+                        {isAdmin && (
+                            <button className={`event-info__button ${isEditFormVisible ? 'event-info__button-disabled' : ''}`}
+                                    type='button' disabled={isEditFormVisible} onClick={handleEditClick}>
+                                Edit Event
+                            </button>
+                        )}
+                        {isAdmin && (
+                            <button className={`event-info__button`}
+                                    type='button' onClick={handleDeleteClick}>
+                                Delete Event
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
-            {isClicked && eventId && userData && (
+            {isBookFormVisible && !isEditFormVisible && eventId && userData && (
                 <div className='event-info-center'>
-                    <TicketsForm eventId={eventId} userData={userData} availableTicketsState={availableTicketsState} setAvailableStateTickets={setAvailableStateTickets}/>
-                </div>)}
+                    <TicketsForm eventId={eventId} userData={userData} availableTicketsState={availableTicketsState}
+                                 setAvailableStateTickets={setAvailableStateTickets} />
+                </div>
+            )}
+            {isEditFormVisible && !isBookFormVisible && eventId && userData && (
+                <div className='event-info-center'>
+                    <TicketsFormEdit eventById={eventById} categoryName={categoryName} />
+                </div>
+            )}
         </>
     );
 };
 
 export default EventInfo;
-
