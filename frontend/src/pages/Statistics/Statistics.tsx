@@ -1,6 +1,6 @@
 import Header from "../../components/Header/Header.tsx";
 import Container from "../../components/Container/Container.tsx";
-import { useFetchCategoriesQuery, useFetchEventsQuery } from "../../redux/fetch/fetch_api.ts";
+import { useFetchCategoriesQuery } from "../../redux/fetch/fetch_api.ts";
 import { useGetAllTicketsQuery, useGetAllUsersQuery } from "../../redux/admin/admin_api.ts";
 import StatisticsPopularCategories from "../../components/StatisticsPopularCategories/StatisticsPopularCategories.tsx";
 import { AdminTicketDataInterface } from "../../interfaces/admin/admin_interface.ts";
@@ -9,9 +9,8 @@ import './Statistics.scss';
 import StatisticsTicketsPerMonth from "../../components/StatisticsTicketsPerMonth/StatisticsTicketsPerMonth.tsx";
 
 const Statistics = () => {
-    const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useFetchCategoriesQuery();
-    const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
-    const { data: usersData, error: usersError, isLoading: usersLoading } = useGetAllUsersQuery();
+    const { error: categoriesError, isLoading: categoriesLoading } = useFetchCategoriesQuery()
+    const { data: usersData } = useGetAllUsersQuery();
     const { data: ticketsData, error: ticketsError, isLoading: ticketsLoading, refetch: refetchTickets } = useGetAllTicketsQuery();
 
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

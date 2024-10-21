@@ -5,7 +5,7 @@ import {TicketsData, TicketsResponse} from "../../interfaces/tickets/TicketsResp
 export const ticketsApi = createApi({
     reducerPath: 'ticketsApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'https://course-project-3f21a753c743.herokuapp.com/',
         prepareHeaders: (headers) => {
             const token = Cookies.get("token");
             if (token) {

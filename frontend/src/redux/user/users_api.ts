@@ -5,7 +5,7 @@ import {UserRequest, UsersResponse} from "../../interfaces/users/UsersResponse.t
 export const usersApi = createApi({
     reducerPath: 'usersApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'https://course-project-3f21a753c743.herokuapp.com/',
         prepareHeaders: (headers) => {
             const token = Cookies.get("token");
             if (token) {
