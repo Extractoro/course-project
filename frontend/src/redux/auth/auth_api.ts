@@ -7,7 +7,7 @@ import {ForgetPasswordRequest, ForgetPasswordResponse} from "../../interfaces/au
 
 export const authApi = createApi({
     reducerPath: 'authApi',
-    baseQuery: fetchBaseQuery({ baseUrl: 'https://course-project-3f21a753c743.herokuapp.com/' }),
+    baseQuery: fetchBaseQuery({ baseUrl: 'https://course-project-3f21a753c743.herokuapp.com' }),
     tagTypes: ['auth'],
     endpoints: (builder) => ({
         signUp: builder.mutation<SignUpResponse, SignUpRequest>({
