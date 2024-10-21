@@ -35,7 +35,7 @@ const router = createBrowserRouter(createRoutesFromElements(
             <Route element={<PublicRoute restricted />}>
                 <Route path="signup" element={<Signup/>}/>
                 <Route path="signin" element={<Signin />} />
-                <Route path="/auth/registration_confirm/:verificationToken" element={<SignupConfirm />} />
+                <Route path="auth/registration_confirm/:verificationToken" element={<SignupConfirm />} />
                 <Route path="auth/reset_password/:resetPasswordToken" element={<ResetPassword />} />
                 <Route path='forget-password' element={<ForgetPassword/>} />
             </Route>
