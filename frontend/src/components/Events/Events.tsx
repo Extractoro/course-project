@@ -67,7 +67,7 @@ const Events = () => {
         if (!eventsLoading && !eventsError && eventsData && eventsData.data.length === 0 && isAdmin) {
             navigate('/admin/create_event');
         }
-    }, []);
+    }, [eventsLoading, eventsError, eventsData, isAdmin, navigate]);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
