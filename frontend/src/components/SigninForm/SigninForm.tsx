@@ -1,7 +1,7 @@
 import {ChangeEvent, FormEvent, useState} from "react";
 import {FaRegEye} from "react-icons/fa6";
 import {FaRegEyeSlash} from "react-icons/fa6";
-import './signinForm.scss'
+import './SigninForm.scss'
 import {Link, useNavigate} from "react-router-dom";
 import {useSignInMutation} from "../../redux/auth/auth_api.ts";
 import {toast} from "react-toastify";
