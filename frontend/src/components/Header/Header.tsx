@@ -8,15 +8,21 @@ import Container from "../Container/Container.tsx";
 import {useLogoutMutation} from "../../redux/auth/auth_api.ts";
 import {toast} from "react-toastify";
 import Cookies from "js-cookie";
-import { HiOutlineTicket } from "react-icons/hi";
-import { FaRegUser } from "react-icons/fa";
-import { TbLogout2 } from "react-icons/tb";
+import {HiOutlineTicket} from "react-icons/hi";
+import {FaRegUser} from "react-icons/fa";
+import {TbLogout2} from "react-icons/tb";
+import {useSelector} from "react-redux";
+import {selectUserRole} from "../../redux/auth/auth_selector.ts";
+import {ImStatsDots} from "react-icons/im";
 
 const Header = () => {
     const navigate = useNavigate();
     const [logout] = useLogoutMutation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const token = Cookies.get('token');
+
+    const currentUser = useSelector(selectUserRole);
+    const isAdmin = currentUser === 'admin';
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -35,9 +41,10 @@ const Header = () => {
     };
 
     const navItems = [
-        {link: 'Profile', path: '/profile', isLogout: false},
-        {link: 'Tickets', path: '/user_tickets', isLogout: false},
-        {link: 'Log Out', path: '/logout', isLogout: true},
+        {link: 'Profile', path: '/profile', isLogout: false, isStats: false},
+        {link: 'Tickets', path: '/user_tickets', isLogout: false, isStats: false},
+        {link: 'Stats', path: '/admin/statistics', isLogout: false, isStats: true},
+        {link: 'Log Out', path: '/logout', isLogout: true, isStats: false},
     ]
 
     return (
@@ -72,19 +79,27 @@ const Header = () => {
 
             {token && (
                 <div className={`menu ${isMenuOpen ? "menu--open" : "menu--closed"}`}>
-                    {navItems.map(({link, path, isLogout}) => (
+                    {navItems.map(({link, path, isLogout, isStats}) => (
                         <div key={link} className="menu__item" onClick={isLogout ? handleLogout : undefined}>
-                            {isLogout ? (
+                            {isLogout && (
                                 <button onClick={toggleMenu} className="menu__link">
                                     <TbLogout2 className='menu__link-icon'/>
                                     {link}
                                 </button>
-                            ) : (
+                            )}
+                            {isStats && isAdmin && (
                                 <Link to={path} onClick={toggleMenu} className="menu__link">
-                                    {link === 'Profile' ? <FaRegUser className='menu__link-icon' /> : <HiOutlineTicket className='menu__link-icon'/>}
+                                    <ImStatsDots className='menu__link-icon'/>
                                     {link}
                                 </Link>
                             )}
+                            {!isStats && !isLogout && (<Link to={path} onClick={toggleMenu} className="menu__link">
+                                {link === 'Profile' ? <FaRegUser className='menu__link-icon'/> :
+                                    <HiOutlineTicket className='menu__link-icon'/>}
+                                {link}
+                            </Link>)
+                            }
+
                         </div>
                     ))}
                 </div>

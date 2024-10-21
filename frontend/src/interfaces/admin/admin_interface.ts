@@ -23,3 +23,38 @@ export interface AdminResponseInterface {
     eventId?: number;
     venueId?: number;
 }
+
+export interface AdminGetAllTicketsInterface {
+    status: number;
+    success: boolean;
+    data: AdminTicketDataInterface[]
+}
+
+export interface AdminTicketDataInterface {
+    ticket_id: number,
+    event_id: number,
+    user_id: number,
+    purchase_date: Date,
+    ticket_status: 'booked' | 'paid',
+    event_name: string,
+    event_date: Date,
+    ticket_price: number,
+    category_id: number,
+    category_name: string,
+    user_firstname: string,
+    user_lastname: string,
+    email: string
+}
+
+export interface AdminGetAllUsersInterface {
+    status: number;
+    success: boolean;
+    data: AdminUserDataInterface[]
+}
+
+export interface AdminUserDataInterface{
+    user_firstname: string,
+    user_lastname: string,
+    email: string,
+    verify: 0 | 1
+}

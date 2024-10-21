@@ -15,6 +15,7 @@ import EventDetail from "./pages/EventDetail/EventDetail.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
 import UserTickets from "./pages/UserTickets/UserTickets.tsx";
 import AddEvent from "./pages/AddEvent/AddEvent.tsx";
+import Statistics from "./pages/Statistics/Statistics.tsx";
 
 const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/">
@@ -26,6 +27,7 @@ const router = createBrowserRouter(createRoutesFromElements(
 
                 <Route path="/admin/">
                     <Route path='create_event' element={<AddEvent />}/>
+                    <Route path='statistics' element={<Statistics />}/>
                 </Route>
 
             </Route>

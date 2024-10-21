@@ -9,7 +9,7 @@ import {PoolConnection} from "mysql";
 dotenv.config();
 const router = Router();
 
-router.use(authMiddleware)
+// router.use(authMiddleware)
 // router.use(adminMiddleware)
 
 router.post("/create_event", controllersWrapper(async (req: Request, res: Response) => {
@@ -361,6 +361,123 @@ router.delete("/delete_event/:id", controllersWrapper(async (req: Request, res: 
             message: err.message,
          });
       }
+      res.status(500).send({
+         status: 500,
+         success: false,
+         message: 'Internal Server Error',
+      });
+   } finally {
+      if (connection) {
+         connection.release();
+      }
+   }
+}));
+
+router.get("/all_tickets", controllersWrapper(async (req: Request, res: Response) => {
+   const getAllTicketsQuery = `
+        SELECT
+            t.ticket_id,
+            t.event_id,
+            t.user_id,
+            t.purchase_date,
+            t.ticket_status,
+            e.event_name,
+            e.category_id,
+            e.event_date,
+            e.ticket_price,
+            c.category_name,
+            u.user_firstname,
+            u.user_lastname,
+            u.email
+        FROM tickets t
+                 JOIN events e ON t.event_id = e.event_id
+                 JOIN users u ON t.user_id = u.user_id
+                 JOIN categories c ON c.category_id = e.category_id
+    `;
+
+   let connection: PoolConnection | null = null;
+
+   try {
+      connection = await getConnection();
+
+      if (!connection) {
+         throw new Error("Failed to establish database connection.");
+      }
+
+      const tickets = await new Promise<any[]>((resolve, reject) => {
+         connection!.query(getAllTicketsQuery, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+         });
+      });
+
+      if (tickets && tickets.length === 0) {
+         return res.status(404).send({
+            status: 404,
+            success: false,
+            message: 'No tickets found.',
+         });
+      }
+
+      res.status(200).send({
+         status: 200,
+         success: true,
+         data: tickets,
+      });
+
+   } catch (err) {
+      res.status(500).send({
+         status: 500,
+         success: false,
+         message: 'Internal Server Error',
+      });
+   } finally {
+      if (connection) {
+         connection.release();
+      }
+   }
+}));
+
+router.get("/all_users", controllersWrapper(async (req: Request, res: Response) => {
+   const getAllUsersQuery = `
+        SELECT
+            u.user_firstname,
+            u.user_lastname,
+            u.email, u.verify
+        FROM users u
+    `;
+
+   let connection: PoolConnection | null = null;
+
+   try {
+      connection = await getConnection();
+
+      if (!connection) {
+         throw new Error("Failed to establish database connection.");
+      }
+
+      const users = await new Promise<any[]>((resolve, reject) => {
+         connection!.query(getAllUsersQuery, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+         });
+      });
+
+      if (users && users.length === 0) {
+         return res.status(404).send({
+            status: 404,
+            success: false,
+            message: 'No users found.',
+         });
+      }
+
+      res.status(200).send({
+         status: 200,
+         success: true,
+         data: users,
+      });
+
+   } catch (err) {
       res.status(500).send({
          status: 500,
          success: false,

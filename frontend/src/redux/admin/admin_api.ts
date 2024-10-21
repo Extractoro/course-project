@@ -1,7 +1,7 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
 import {
-    AdminDeleteRequestInterface,
+    AdminDeleteRequestInterface, AdminGetAllTicketsInterface, AdminGetAllUsersInterface,
     AdminRequestInterface,
     AdminResponseInterface
 } from "../../interfaces/admin/admin_interface.ts";
@@ -18,7 +18,7 @@ export const adminApi = createApi({
             return headers;
         }
     }),
-    tagTypes: ['admin'],
+    tagTypes: ['admin', 'tickets'],
     endpoints: (builder) => ({
         createEvent: builder.mutation<AdminResponseInterface, AdminRequestInterface>({
             query: body => ({
@@ -40,6 +40,19 @@ export const adminApi = createApi({
                 method: 'DELETE',
             }),
         }),
+        getAllTickets: builder.query<AdminGetAllTicketsInterface, void>({
+            query: () => ({
+                url: `/admin/all_tickets`,
+                method: 'GET',
+            }),
+            providesTags: ['tickets']
+        }),
+        getAllUsers: builder.query<AdminGetAllUsersInterface, void>({
+            query: () => ({
+                url: `/admin/all_users`,
+                method: 'GET',
+            }),
+        }),
     })
 })
 
@@ -47,4 +60,6 @@ export const {
     useCreateEventMutation,
     useUpdateEventMutation,
     useDeleteEventMutation,
+    useGetAllTicketsQuery,
+    useGetAllUsersQuery,
 } = adminApi;

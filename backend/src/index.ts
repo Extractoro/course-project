@@ -19,7 +19,7 @@ app.use(cors({
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(cookieParser());
-app.use(morgan('combined'));
+app.use(morgan('tiny'));
 
 app.use('/auth', authRouter)
 app.use('/admin', adminRouter)
