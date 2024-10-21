@@ -55,6 +55,20 @@ const Events = () => {
         };
     }, []);
 
+    // Перенаправление для админа, если нет событий
+    useEffect(() => {
+        console.log({
+            eventsLoading,
+            eventsError,
+            eventsData: eventsData?.data.length,
+            isAdmin,
+        });
+
+        if (!eventsLoading && !eventsError && eventsData && eventsData.data.length === 0 && isAdmin) {
+            navigate('/admin/create_event');
+        }
+    }, []);
+
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
         document.body.classList.toggle('no-scroll', !isMenuOpen);
