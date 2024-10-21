@@ -28,7 +28,7 @@ router.post('/registration', controllersWrapper(async (req: Request, res: Respon
             });
         });
 
-        if (existingUser) {
+        if (existingUser.length > 0) {
             return res.status(400).send({
                 status: 400,
                 success: false,
@@ -39,17 +39,24 @@ router.post('/registration', controllersWrapper(async (req: Request, res: Respon
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationToken = uuidv4();
         const resetPasswordToken = uuidv4();
-        const sqlQuery = `CALL registrationUser(?, ?, ?, ?, ?, ?, ?)`;
 
-        await connection.query(sqlQuery, [
-            firstName,
-            lastName,
-            email,
-            hashedPassword,
-            phone || null,
-            verificationToken,
-            resetPasswordToken
-        ]);
+        const sqlInsert = `INSERT INTO users (user_firstname, user_lastname, email, password, phone, verificationToken, resetPasswordToken) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+        await new Promise<void>((resolve, reject) => {
+            connection!.query(sqlInsert, [
+                firstName,
+                lastName,
+                email,
+                hashedPassword,
+                phone || null,
+                verificationToken,
+                resetPasswordToken
+            ], (err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
 
         await transporter.sendMail({
             to: email,
