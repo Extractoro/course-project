@@ -86,7 +86,7 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
             reset();
         } catch (err: any) {
             if (err.data?.message) {
-                toast.error(`${err.data?.message}`, {
+                toast.error(`Server error or invalid credentials`, {
                     autoClose: 2000,
                 });
             }
