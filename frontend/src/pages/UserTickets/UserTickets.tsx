@@ -12,17 +12,14 @@ import TicketsReturnForm from "../../components/TicketsReturnForm/TicketsReturnF
 const UserTickets = () => {
     const {data: userInfo, error: userError, isLoading: userLoading} = useCurrentUserQuery();
 
-    // Если пользователь не загружен или есть ошибка — показать сообщение
     if (userLoading) return <p>Loading user...</p>;
     if (userError || !userInfo?.results?.length) {
         toast.error("Something went wrong!");
         return <p>Error loading user data.</p>;
     }
 
-    // Получаем user_id текущего пользователя
     const userId = userInfo.results[0]?.user_id;
 
-    // Получение данных о билетах пользователя
     const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userId});
     const [ticketsVisible, setTicketsVisible] = useState<{ [key: number]: boolean }>({});
     const [isClicked, setIsClicked] = useState(false);
@@ -35,7 +32,6 @@ const UserTickets = () => {
         setTicketsVisible(prev => ({...prev, [eventId]: !prev[eventId]}));
     };
 
-    // Группировка билетов по событиям
     const groupedTickets = data?.data?.reduce((acc: { [key: number]: any[] }, ticket: UserTicketsData) => {
         const {event_id} = ticket;
         if (!acc[event_id]) {

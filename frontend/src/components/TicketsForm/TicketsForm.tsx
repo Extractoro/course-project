@@ -3,7 +3,7 @@ import {toast} from "react-toastify";
 import {UsersResponse} from "../../interfaces/users/UsersResponse.ts";
 import {useBookTicketsMutation} from "../../redux/tickets/tickets_api.ts";
 import './TicketsForm.scss'
-import {useFetchUserTicketsMutation} from "../../redux/fetch/fetch_api.ts";
+import {useFetchUserTicketsQuery} from "../../redux/fetch/fetch_api.ts";
 import {UserTicketsData} from "../../interfaces/fetch/UserTicketsResponse.ts";
 
 type TicketsFormProps = {
@@ -14,18 +14,22 @@ type TicketsFormProps = {
 }
 
 const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsState, setAvailableStateTickets}) => {
-    const [bookTickets] = useBookTicketsMutation()
-    const [userTickets] = useFetchUserTicketsMutation()
-    const [quantity, setQuantity] = useState<number>(1)
+    const [bookTickets] = useBookTicketsMutation();
+    const [quantity, setQuantity] = useState<number>(1);
+
+    const userId = userData.results[0]?.user_id;
+
+    const {data: userTicketsResponse} = useFetchUserTicketsQuery({user_id: userId});
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         try {
             e.preventDefault();
 
             if (userData && userData.results && userData.results.length > 0 && availableTicketsState) {
-                const userId = userData.results[0]?.user_id;
-                const userTicketsResponse = await userTickets({user_id: userId});
-                const userBookedTickets = userTicketsResponse.data?.data?.filter((ticket: UserTicketsData) => Number(ticket.event_id) === Number(eventId) && ticket.ticket_status === 'booked').length || 0;
+                const userBookedTickets = userTicketsResponse?.data?.filter((ticket: UserTicketsData) =>
+                    Number(ticket.event_id) === Number(eventId) && ticket.ticket_status === 'booked'
+                ).length || 0;
+
                 const totalTicketsAllowed = Math.max(Math.floor((availableTicketsState + userBookedTickets) * 0.05), 1);
                 const remainingTicketsAllowed = totalTicketsAllowed - userBookedTickets;
 
@@ -55,7 +59,6 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
         }
     };
 
-
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
 
@@ -70,7 +73,7 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
     };
 
     const reset = () => {
-        setQuantity(1)
+        setQuantity(1);
     };
 
     return (
