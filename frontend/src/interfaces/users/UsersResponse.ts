@@ -23,3 +23,7 @@ export interface UserRequest {
     email: string;
     password?: string;
 }
+
+export interface UserRequestId {
+    userId: number | null
+}

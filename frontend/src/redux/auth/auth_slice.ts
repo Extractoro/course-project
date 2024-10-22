@@ -5,14 +5,13 @@ import {authApi} from "./auth_api.ts";
 interface AuthState {
     token: string | null;
     role: 'admin' | 'user' | null;
+    userId: number | null;
 }
 
-const tokenFromStorage = localStorage.getItem('token');
-const roleFromStorage = localStorage.getItem('role');
-
 const initialState: AuthState = {
-    token: tokenFromStorage ? tokenFromStorage : null,
-    role: roleFromStorage ? (roleFromStorage as 'admin' | 'user') : null,
+    token: null,
+    role: null,
+    userId: null,
 };
 
 const authSlice = createSlice({
@@ -23,20 +22,17 @@ const authSlice = createSlice({
         builder.addMatcher(authApi.endpoints.signIn.matchFulfilled, (state, { payload }: PayloadAction<SignInResponse>) => {
             const token = payload?.results?.token || null;
             const role = payload?.results?.role || null;
+            const userId = payload?.results?.user_id || null;
 
             state.token = token;
             state.role = role;
-
-            if (token) localStorage.setItem('token', token);
-            if (role) localStorage.setItem('role', role);
+            state.userId = userId;
         });
 
         builder.addMatcher(authApi.endpoints.logout.matchFulfilled, (state) => {
             state.token = null;
             state.role = null;
-
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
+            state.userId = null;
         });
     }
 });

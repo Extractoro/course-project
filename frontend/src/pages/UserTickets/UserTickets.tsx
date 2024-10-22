@@ -8,16 +8,18 @@ import {toast} from "react-toastify";
 import {UserTicketsData} from "../../interfaces/fetch/UserTicketsResponse.ts";
 import {DateTime} from "luxon";
 import TicketsReturnForm from "../../components/TicketsReturnForm/TicketsReturnForm.tsx";
-import ReactLoading from 'react-loading';
+import {useSelector} from "react-redux";
+import {selectUserId, } from "../../redux/auth/auth_selector.ts";
 
 const UserTickets = () => {
-    const {data: userInfo, error: userError, isLoading: userLoading, refetch: refetchUser} = useCurrentUserQuery();
+    const userId = useSelector(selectUserId);
+    const {data: userInfo, error: userError, isLoading: userLoading, refetch: refetchUser} = useCurrentUserQuery({userId});
 
     useEffect(() => {
         refetchUser();
     }, []);
 
-    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userInfo?.results[0]?.user_id});
+    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userId});
 
     const [ticketsVisible, setTicketsVisible] = useState<{ [key: number]: boolean }>({});
     const [isClicked, setIsClicked] = useState(false);

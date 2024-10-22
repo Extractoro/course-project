@@ -26,7 +26,7 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
     const [phone, setPhone] = useState(userInfo?.results[0]?.phone || '')
     const [password, setPassword] = useState('')
     const [show, setShow] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false); // Состояние загрузки
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleClick = () => setShow(!show);
 
@@ -67,7 +67,7 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
         const oldEmail = userInfo?.results[0]?.email;
 
         try {
-            setIsSubmitting(true); // Начало отправки
+            setIsSubmitting(true);
             await updateUser({user_id, firstname, lastname, email, phone, password}).unwrap();
 
             if (oldEmail === email) {
@@ -91,7 +91,7 @@ const UserForm: FC<UserFormProps> = ({userInfo}) => {
                 });
             }
         } finally {
-            setIsSubmitting(false); // Конец отправки
+            setIsSubmitting(false);
         }
     };
 

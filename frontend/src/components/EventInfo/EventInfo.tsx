@@ -7,16 +7,17 @@ import { DateTime } from "luxon";
 import TicketsForm from "../TicketsForm/TicketsForm.tsx";
 import { useCurrentUserQuery } from "../../redux/user/users_api.ts";
 import { useSelector } from "react-redux";
-import { selectUserRole } from "../../redux/auth/auth_selector.ts";
+import {selectUserId, selectUserRole} from "../../redux/auth/auth_selector.ts";
 import TicketsFormEdit from "../TicketsFormEdit/TicketsFormEdit.tsx";
 import {toast} from "react-toastify";
 import {useDeleteEventMutation} from "../../redux/admin/admin_api.ts";
 
 const EventInfo = () => {
     const navigate = useNavigate();
+    const userId = useSelector(selectUserId);
     const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
     const { data: categoriesData } = useFetchCategoriesQuery();
-    const { data: userData } = useCurrentUserQuery();
+    const { data: userData } = useCurrentUserQuery({userId});
     const [deleteEvent] = useDeleteEventMutation();
     const { eventId } = useParams<{ eventId: string }>();
     const [isBookFormVisible, setIsBookFormVisible] = useState(false);

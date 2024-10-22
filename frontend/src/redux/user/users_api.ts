@@ -1,6 +1,6 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
-import {UserRequest, UsersResponse} from "../../interfaces/users/UsersResponse.ts";
+import {UserRequest, UserRequestId, UsersResponse} from "../../interfaces/users/UsersResponse.ts";
 
 export const usersApi = createApi({
     reducerPath: 'usersApi',
@@ -16,9 +16,9 @@ export const usersApi = createApi({
     }),
     tagTypes: ['users'],
     endpoints: (builder) => ({
-        currentUser: builder.query<UsersResponse, void>({
-            query: () => ({
-                url: '/user/current',
+        currentUser: builder.query<UsersResponse, UserRequestId>({
+            query: body => ({
+                url: `/user/current/${body?.userId}`,
                 refetchOnMountOrArgChange: true,
             }),
         }),

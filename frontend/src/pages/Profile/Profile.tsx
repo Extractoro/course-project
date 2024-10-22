@@ -4,9 +4,12 @@ import Container from "../../components/Container/Container.tsx";
 import {useCurrentUserQuery} from "../../redux/user/users_api.ts";
 import {useState} from "react";
 import UserForm from "../../components/UserForm/UserForm.tsx";
+import {selectUserId} from "../../redux/auth/auth_selector.ts";
+import {useSelector} from "react-redux";
 
 const Profile = () => {
-    const {data: userInfo, error: userError, isLoading: userLoading} = useCurrentUserQuery()
+    const userId = useSelector(selectUserId);
+    const {data: userInfo, error: userError, isLoading: userLoading} = useCurrentUserQuery({userId})
     const [isClicked, setIsClicked] = useState(false);
 
     const handleClick = () => {

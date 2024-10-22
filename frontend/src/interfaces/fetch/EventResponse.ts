@@ -18,12 +18,3 @@ export interface EventResponse {
     success: boolean;
     data: EventData[];
 }
-
-// city: string;
-// event_date: string;
-// venue_name: string;
-
-// category: string;
-// ticket_price: number;
-// available_tickets: number;
-// address: string;
