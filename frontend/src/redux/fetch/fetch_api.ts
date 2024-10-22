@@ -33,7 +33,7 @@ export const fetchApi = createApi({
                 url: `/fetch/user_tickets/${body?.user_id}`,
                 method: 'GET',
             }),
-            providesTags: ['tickets'],
+            refetchOnMountOrArgChange: true,
         }),
     })
 })
