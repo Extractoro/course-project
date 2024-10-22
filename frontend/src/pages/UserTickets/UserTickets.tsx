@@ -8,6 +8,7 @@ import {toast} from "react-toastify";
 import {UserTicketsData} from "../../interfaces/fetch/UserTicketsResponse.ts";
 import {DateTime} from "luxon";
 import TicketsReturnForm from "../../components/TicketsReturnForm/TicketsReturnForm.tsx";
+import ReactLoading from 'react-loading';
 
 const UserTickets = () => {
     const {data: userInfo, error: userError, isLoading: userLoading, refetch: refetchUser} = useCurrentUserQuery();
