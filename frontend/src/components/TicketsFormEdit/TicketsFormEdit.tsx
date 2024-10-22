@@ -92,7 +92,7 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
                 available_tickets: formData.availableTickets
             }).unwrap();
 
-            toast.success('Event created successfully!', {
+            toast.success('Event edited successfully!', {
                 autoClose: 2000,
             });
             navigate('/')

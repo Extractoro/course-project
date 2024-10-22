@@ -12,7 +12,7 @@ import {selectUserRole} from "../../redux/auth/auth_selector.ts";
 
 const Events = () => {
     const navigate = useNavigate();
-    const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
+    const { data: eventsData, error: eventsError, isLoading: eventsLoading, refetch } = useFetchEventsQuery();
     const { data: categoriesData } = useFetchCategoriesQuery();
     const [cityFilter, setCityFilter] = useState('');
     const [venueNameFilter, setVenueNameFilter] = useState('');
@@ -42,6 +42,7 @@ const Events = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
+        refetch()
         const handleResize = () => {
             if (window.innerWidth >= 1200) {
                 setIsMenuOpen(false);
