@@ -1,5 +1,5 @@
 export interface UserTicketsRequest {
-    user_id: number
+    user_id: number | undefined;
 }
 
 export interface UserTicketsResponse {

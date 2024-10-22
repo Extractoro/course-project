@@ -16,7 +16,7 @@ export const fetchApi = createApi({
             return headers;
         }
     }),
-    tagTypes: ['events', 'tickets'], // Добавим тег для билетов
+    tagTypes: ['events'],
     endpoints: (builder) => ({
         fetchEvents: builder.query<EventResponse, void>({
             query: () => ({
@@ -32,6 +32,7 @@ export const fetchApi = createApi({
             query: (body) => ({
                 url: `/fetch/user_tickets/${body?.user_id}`,
                 method: 'GET',
+                refetchOnMountOrArgChange: true
             }),
         }),
     })

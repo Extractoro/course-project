@@ -19,6 +19,7 @@ export const usersApi = createApi({
         currentUser: builder.query<UsersResponse, void>({
             query: () => ({
                 url: '/user/current',
+                refetchOnMountOrArgChange: true,
             }),
         }),
         updateUser: builder.mutation<UsersResponse, UserRequest>({

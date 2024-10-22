@@ -2,7 +2,7 @@ import './UserTickets.scss'
 import Header from "../../components/Header/Header.tsx";
 import Container from "../../components/Container/Container.tsx";
 import {useFetchUserTicketsQuery} from "../../redux/fetch/fetch_api.ts";
-import { useState} from "react";
+import {useEffect, useState} from "react";
 import {useCurrentUserQuery} from "../../redux/user/users_api.ts";
 import {toast} from "react-toastify";
 import {UserTicketsData} from "../../interfaces/fetch/UserTicketsResponse.ts";
@@ -10,17 +10,14 @@ import {DateTime} from "luxon";
 import TicketsReturnForm from "../../components/TicketsReturnForm/TicketsReturnForm.tsx";
 
 const UserTickets = () => {
-    const {data: userInfo, error: userError, isLoading: userLoading} = useCurrentUserQuery();
+    const {data: userInfo, error: userError, isLoading: userLoading, refetch: refetchUser} = useCurrentUserQuery();
 
-    if (userLoading) return <p>Loading user...</p>;
-    if (userError || !userInfo?.results?.length) {
-        toast.error("Something went wrong!");
-        return <p>Error loading user data.</p>;
-    }
+    useEffect(() => {
+        refetchUser();
+    }, []);
 
-    const userId = userInfo.results[0]?.user_id;
+    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userInfo?.results[0]?.user_id});
 
-    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userId}, { refetchOnMountOrArgChange: true });
     const [ticketsVisible, setTicketsVisible] = useState<{ [key: number]: boolean }>({});
     const [isClicked, setIsClicked] = useState(false);
 
@@ -40,6 +37,12 @@ const UserTickets = () => {
         acc[event_id].push(ticket);
         return acc;
     }, {});
+
+    if (userLoading) return <p>Loading user...</p>;
+    if (userError || !userInfo?.results?.length) {
+        toast.error("Something went wrong!");
+        return <p>Error loading user data.</p>;
+    }
 
     return (
         <>
