@@ -55,15 +55,7 @@ const Events = () => {
         };
     }, []);
 
-    // Перенаправление для админа, если нет событий
     useEffect(() => {
-        console.log({
-            eventsLoading,
-            eventsError,
-            eventsData: eventsData?.data.length,
-            isAdmin,
-        });
-
         if (!eventsLoading && !eventsError && eventsData && eventsData.data.length === 0 && isAdmin) {
             navigate('/admin/create_event');
         }
@@ -187,7 +179,7 @@ const Events = () => {
                         />
 
                         {isAdmin &&
-                            <button className="event-card__button-add" onClick={handleAddEvent}>Add ticket</button>}
+                            <button className="event-card__button-add" onClick={handleAddEvent}>Add event</button>}
                     </div>
 
                     <div className='events__container--desktop'>
@@ -222,7 +214,7 @@ const Events = () => {
                             />
 
                             {isAdmin &&
-                                <button className="event-card__button-add" onClick={handleAddEvent}>Add ticket</button>}
+                                <button className="event-card__button-add" onClick={handleAddEvent}>Add event</button>}
                         </div>
                         <div className='events-list' id='events-list'>
                             {filteredEvents.length > 0 ? (

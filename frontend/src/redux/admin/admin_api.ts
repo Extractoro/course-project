@@ -45,7 +45,6 @@ export const adminApi = createApi({
                 url: `/admin/all_tickets`,
                 method: 'GET',
             }),
-            providesTags: ['tickets']
         }),
         getAllUsers: builder.query<AdminGetAllUsersInterface, void>({
             query: () => ({

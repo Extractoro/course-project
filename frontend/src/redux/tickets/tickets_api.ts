@@ -22,7 +22,6 @@ export const ticketsApi = createApi({
                 method: 'POST',
                 body: {event_id, user_id, quantity}
             }),
-            invalidatesTags: ['tickets'],
         }),
         returnTickets: builder.mutation<TicketsResponse, TicketsData>({
             query: body => ({
@@ -30,7 +29,6 @@ export const ticketsApi = createApi({
                 method: 'POST',
                 body
             }),
-            invalidatesTags: ['tickets'],
         })
     })
 })
