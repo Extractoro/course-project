@@ -20,7 +20,7 @@ const UserTickets = () => {
 
     const userId = userInfo.results[0]?.user_id;
 
-    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userId});
+    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userId}, { refetchOnMountOrArgChange: true });
     const [ticketsVisible, setTicketsVisible] = useState<{ [key: number]: boolean }>({});
     const [isClicked, setIsClicked] = useState(false);
 

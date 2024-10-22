@@ -13,7 +13,7 @@ type TicketsReturnFormProps = {
 const TicketsReturnForm: FC<TicketsReturnFormProps> = ({ userInfo, ticketsInfo }) => {
     const [returnTickets] = useReturnTicketsMutation();
     const [quantity, setQuantity] = useState<number>(1);
-    const [event_id, setEventId] = useState<string>(''); // Состояние для хранения выбранного eventId
+    const [event_id, setEventId] = useState<string>('');
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();

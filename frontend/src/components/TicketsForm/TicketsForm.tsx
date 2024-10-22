@@ -19,7 +19,7 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
 
     const userId = userData.results[0]?.user_id;
 
-    const {data: userTicketsResponse} = useFetchUserTicketsQuery({user_id: userId});
+    const {data: userTicketsResponse} = useFetchUserTicketsQuery({user_id: userId}, { refetchOnMountOrArgChange: true });
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         try {
