@@ -1,8 +1,8 @@
 import './UserTickets.scss'
 import Header from "../../components/Header/Header.tsx";
 import Container from "../../components/Container/Container.tsx";
-import {useFetchUserTicketsMutation} from "../../redux/fetch/fetch_api.ts";
-import {useEffect, useState} from "react";
+import {useFetchUserTicketsQuery} from "../../redux/fetch/fetch_api.ts";
+import { useState} from "react";
 import {useCurrentUserQuery} from "../../redux/user/users_api.ts";
 import {toast} from "react-toastify";
 import {UserTicketsData} from "../../interfaces/fetch/UserTicketsResponse.ts";
@@ -10,47 +10,33 @@ import {DateTime} from "luxon";
 import TicketsReturnForm from "../../components/TicketsReturnForm/TicketsReturnForm.tsx";
 
 const UserTickets = () => {
-    const {data: userInfo, error: userError, isLoading: userLoading} = useCurrentUserQuery()
-    const [fetchUserTickets, {data, isLoading, isError}] = useFetchUserTicketsMutation();
+    const {data: userInfo, error: userError, isLoading: userLoading} = useCurrentUserQuery();
+
+    // Если пользователь не загружен или есть ошибка — показать сообщение
+    if (userLoading) return <p>Loading user...</p>;
+    if (userError || !userInfo?.results?.length) {
+        toast.error("Something went wrong!");
+        return <p>Error loading user data.</p>;
+    }
+
+    // Получаем user_id текущего пользователя
+    const userId = userInfo.results[0]?.user_id;
+
+    // Получение данных о билетах пользователя
+    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userId});
     const [ticketsVisible, setTicketsVisible] = useState<{ [key: number]: boolean }>({});
     const [isClicked, setIsClicked] = useState(false);
 
     const handleClick = () => {
-        setIsClicked(prevState => {
-            return !prevState;
-        });
-    }
-
-    useEffect(() => {
-        if (userLoading) return;
-
-        if (userError) {
-            toast.error("Something went wrong with user!");
-            return;
-        }
-
-        if (!userInfo || !userInfo?.results || userInfo.results.length === 0) {
-            toast.error("Something went wrong!");
-            return
-        }
-
-        const loadUserTickets = async () => {
-            try {
-                const userId = userInfo?.results[0]?.user_id;
-                await fetchUserTickets({user_id: userId}).unwrap();
-            } catch (error) {
-                console.error("Error loading tickets:", error);
-            }
-        };
-
-        loadUserTickets();
-    }, [fetchUserTickets, userInfo, userLoading, userError]);
+        setIsClicked(prevState => !prevState);
+    };
 
     const toggleTicketsVisibility = (eventId: number) => {
         setTicketsVisible(prev => ({...prev, [eventId]: !prev[eventId]}));
     };
 
-    const groupedTickets = data?.data.reduce((acc: { [key: number]: any[] }, ticket: any) => {
+    // Группировка билетов по событиям
+    const groupedTickets = data?.data?.reduce((acc: { [key: number]: any[] }, ticket: UserTicketsData) => {
         const {event_id} = ticket;
         if (!acc[event_id]) {
             acc[event_id] = [];
@@ -58,7 +44,6 @@ const UserTickets = () => {
         acc[event_id].push(ticket);
         return acc;
     }, {});
-
 
     return (
         <>

@@ -16,7 +16,7 @@ export const fetchApi = createApi({
             return headers;
         }
     }),
-    tagTypes: ['events'],
+    tagTypes: ['events', 'tickets'], // Добавим тег для билетов
     endpoints: (builder) => ({
         fetchEvents: builder.query<EventResponse, void>({
             query: () => ({
@@ -28,17 +28,18 @@ export const fetchApi = createApi({
                 url: '/fetch/categories',
             }),
         }),
-        fetchUserTickets: builder.mutation<UserTicketsResponse, UserTicketsRequest>({
-            query: body => ({
+        fetchUserTickets: builder.query<UserTicketsResponse, UserTicketsRequest>({
+            query: (body) => ({
                 url: `/fetch/user_tickets/${body?.user_id}`,
                 method: 'GET',
             }),
-        })
+            providesTags: ['tickets'],
+        }),
     })
 })
 
 export const {
     useFetchEventsQuery,
     useFetchCategoriesQuery,
-    useFetchUserTicketsMutation
+    useFetchUserTicketsQuery
 } = fetchApi;
