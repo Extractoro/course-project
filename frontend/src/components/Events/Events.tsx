@@ -27,8 +27,8 @@ const Events = () => {
         const matchesCity = cityFilter ? event.city.toLowerCase().includes(cityFilter.toLowerCase()) : true;
         const matchesVenueName = venueNameFilter ? event.venue_name.toLowerCase().includes(venueNameFilter.toLowerCase()) : true;
 
-        const eventDateKiev = DateTime.fromISO(event.event_date, { zone: 'utc' }).setZone('Europe/Kiev').toISODate();
-        const matchesDate = dateFilter ? eventDateKiev === dateFilter : true;
+        const eventDateKiev = DateTime.fromISO(event.event_date, { zone: 'utc' }).setZone('Europe/Kiev');
+        const matchesDate = dateFilter ? eventDateKiev.toISODate() === dateFilter : true;
 
         const categoryName = categoriesData?.data?.find((category: CategoriesData) => category.category_id === event.category_id)?.category_name || '';
         const matchesCategory = categoryFilter ? categoryName.toLowerCase().includes(categoryFilter.toLowerCase()) : true;
@@ -36,7 +36,9 @@ const Events = () => {
         const matchesAddress = addressFilter ? event.address.toLowerCase().includes(addressFilter.toLowerCase()) : true;
         const matchesMinPrice = minPriceFilter ? event.ticket_price <= Number(minPriceFilter) : true;
 
-        return matchesCity && matchesVenueName && matchesDate && matchesCategory && matchesAddress && matchesMinPrice;
+        const isFutureEvent = eventDateKiev >= DateTime.now().setZone('Europe/Kiev');
+
+        return matchesCity && matchesVenueName && matchesDate && matchesCategory && matchesAddress && matchesMinPrice && isFutureEvent;
     }) ?? [];
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);

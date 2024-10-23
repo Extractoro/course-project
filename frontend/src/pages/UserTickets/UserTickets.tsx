@@ -9,17 +9,26 @@ import {UserTicketsData} from "../../interfaces/fetch/UserTicketsResponse.ts";
 import {DateTime} from "luxon";
 import TicketsReturnForm from "../../components/TicketsReturnForm/TicketsReturnForm.tsx";
 import {useSelector} from "react-redux";
-import {selectUserId, } from "../../redux/auth/auth_selector.ts";
+import {selectUserId,} from "../../redux/auth/auth_selector.ts";
 
 const UserTickets = () => {
     const userId = useSelector(selectUserId);
-    const {data: userInfo, error: userError, isLoading: userLoading, refetch: refetchUser} = useCurrentUserQuery({userId});
+    const {
+        data: userInfo,
+        error: userError,
+        isLoading: userLoading,
+        refetch: refetchUser
+    } = useCurrentUserQuery({userId});
 
     useEffect(() => {
         refetchUser();
     }, []);
 
-    const {data, isLoading, isError} = useFetchUserTicketsQuery({user_id: userId});
+    const {data, isLoading, isError, refetch: refetchTickets} = useFetchUserTicketsQuery({user_id: userId});
+
+    useEffect(() => {
+        refetchTickets();
+    }, []);
 
     const [ticketsVisible, setTicketsVisible] = useState<{ [key: number]: boolean }>({});
     const [isClicked, setIsClicked] = useState(false);
@@ -33,11 +42,15 @@ const UserTickets = () => {
     };
 
     const groupedTickets = data?.data?.reduce((acc: { [key: number]: any[] }, ticket: UserTicketsData) => {
-        const {event_id} = ticket;
-        if (!acc[event_id]) {
-            acc[event_id] = [];
+        const {event_id, event_date} = ticket;
+        const eventDateKiev = DateTime.fromISO(event_date, {zone: 'utc'}).setZone('Europe/Kiev');
+
+        if (eventDateKiev >= DateTime.now().setZone('Europe/Kiev')) {
+            if (!acc[event_id]) {
+                acc[event_id] = [];
+            }
+            acc[event_id].push(ticket);
         }
-        acc[event_id].push(ticket);
         return acc;
     }, {});
 
@@ -93,14 +106,16 @@ const UserTickets = () => {
                             );
                         })}
 
-                        {!isError &&
+                        {!isError && groupedTickets && !(Object.keys(groupedTickets).length === 0) ?
                             <button
                                 className={`user__tickets-button ${isClicked ? 'user__tickets-button-disabled' : ''}`}
                                 type='button' disabled={isClicked} onClick={handleClick}>Return tickets
-                            </button>
+                            </button> : <h3 className='user__tickets-title'>
+                                You have not got a tickets!
+                            </h3>
                         }
 
-                        {isClicked && userInfo && (
+                        {isClicked && (
                             <div className='user__tickets-center'>
                                 <TicketsReturnForm userInfo={userInfo} ticketsInfo={data}/>
                             </div>

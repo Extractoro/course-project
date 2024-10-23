@@ -4,6 +4,7 @@ import {ChangeEvent, FC, FormEvent, useState} from "react";
 import { UserTicketsResponse } from "../../interfaces/fetch/UserTicketsResponse.ts";
 import './TicketsReturnForm.scss'
 import {toast} from "react-toastify";
+import {DateTime} from "luxon";
 
 type TicketsReturnFormProps = {
     userInfo: UsersResponse;
@@ -56,13 +57,20 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({ userInfo, ticketsInfo }
         }
     };
 
-    const uniqueEvents = ticketsInfo ? Array.from(new Set(ticketsInfo?.data.map(ticket => ticket.event_id))).map(eventId => {
-        const ticket = ticketsInfo?.data.find(t => t.event_id === eventId);
-        return {
-            event_id: eventId,
-            event_name: ticket?.event_name || 'Неизвестное событие',
-        };
-    }) : [];
+    const uniqueEvents = ticketsInfo ? Array.from(new Set(ticketsInfo.data.map(ticket => ticket.event_id)))
+            .map(eventId => {
+                const ticket = ticketsInfo.data.find(t => t.event_id === eventId);
+                return {
+                    event_id: eventId,
+                    event_name: ticket?.event_name || 'Неизвестное событие',
+                    event_date: ticket?.event_date,
+                };
+            })
+            .filter(event => {
+                const eventDate = DateTime.fromISO(event.event_date as string, { zone: 'utc' });
+                return eventDate > DateTime.now();
+            })
+        : [];
 
     return (
         <form className='tickets-return__form' onSubmit={handleSubmit}>
