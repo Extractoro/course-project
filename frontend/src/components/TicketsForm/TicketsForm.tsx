@@ -19,7 +19,7 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
 
     const userId = userData.results[0]?.user_id;
 
-    const {data: userTicketsResponse} = useFetchUserTicketsQuery({user_id: userId});
+    const {data: userTicketsResponse, refetch: refetchUserTickets} = useFetchUserTicketsQuery({user_id: userId});
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         try {
@@ -47,6 +47,7 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
                 toast.success(`You successfully booked ${quantity} tickets.`, {
                     autoClose: 2000,
                 });
+                refetchUserTickets();
 
                 reset();
             }
