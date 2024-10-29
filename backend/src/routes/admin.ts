@@ -24,6 +24,7 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
       description = null,
       ticket_price,
       available_tickets,
+      isAvailable, // Добавлено новое поле
    } = req.body;
 
    const categoryLower = category.trim().toLowerCase();
@@ -77,7 +78,7 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
       }
 
       const addVenueQuery = `INSERT INTO venues (venue_name, address, city, capacity) VALUES (?, ?, ?, ?)`;
-      const addEventQuery = `INSERT INTO events (event_name, event_date, category_id, description, venue_id, ticket_price, available_tickets) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+      const addEventQuery = `INSERT INTO events (event_name, event_date, category_id, description, venue_id, ticket_price, available_tickets, isAvailable) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
       await new Promise<void>((resolve, reject) => {
          connection!.beginTransaction(async (err) => {
@@ -93,8 +94,11 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
 
                const venue_id = venueResult.insertId;
 
+               console.log(isAvailable)
+
+
                await new Promise<void>((resolve, reject) => {
-                  connection!.query(addEventQuery, [event_name, event_date, categoryId, description, venue_id, ticket_price, available_tickets], (err, result) => {
+                  connection!.query(addEventQuery, [event_name, event_date, categoryId, description, venue_id, ticket_price, available_tickets, isAvailable], (err, result) => {
                      if (err) return reject(err);
                      resolve();
                   });
@@ -153,6 +157,7 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
       description = null,
       ticket_price,
       available_tickets,
+      isAvailable, // Добавлено новое поле
    } = req.body;
 
    const categoryLower = category.trim().toLowerCase();
@@ -206,7 +211,6 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
          });
       }
 
-
       const updateVenueQuery = `
             UPDATE venues 
             SET venue_name = ?, address = ?, city = ?, capacity = ? 
@@ -215,7 +219,7 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
 
       const updateEventQuery = `
             UPDATE events 
-            SET event_name = ?, event_date = ?, category_id = ?, description = ?, ticket_price = ?, available_tickets = ?
+            SET event_name = ?, event_date = ?, category_id = ?, description = ?, ticket_price = ?, available_tickets = ?, isAvailable = ?
             WHERE event_id = ?
         `;
 
@@ -232,7 +236,8 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
                });
 
                await new Promise<void>((resolve, reject) => {
-                  connection!.query(updateEventQuery, [event_name, event_date, categoryId, description, ticket_price, available_tickets, event_id], (err, result) => {
+                  // Вставка isAvailable в запрос обновления события
+                  connection!.query(updateEventQuery, [event_name, event_date, categoryId, description, ticket_price, available_tickets, isAvailable, event_id], (err, result) => {
                      if (err) return reject(err);
                      resolve();
                   });
@@ -385,6 +390,7 @@ router.get("/all_tickets", controllersWrapper(async (req: Request, res: Response
             e.category_id,
             e.event_date,
             e.ticket_price,
+            e.isAvailable,
             c.category_name,
             u.user_firstname,
             u.user_lastname,

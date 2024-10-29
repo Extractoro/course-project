@@ -12,11 +12,20 @@ import morgan from "morgan";
 dotenv.config();
 
 const app = express();
+const allowedOrigins = ['https://course-project-extractoro.netlify.app', 'http://localhost:5173'];
+
 app.use(cors({
-    origin: `https://course-project-extractoro.netlify.app`,
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 }));
+
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(cookieParser());

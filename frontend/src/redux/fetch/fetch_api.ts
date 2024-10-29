@@ -32,7 +32,6 @@ export const fetchApi = createApi({
             query: (body) => ({
                 url: `/fetch/user_tickets/${body?.user_id}`,
                 method: 'GET',
-                refetchOnMountOrArgChange: true
             }),
         }),
     })

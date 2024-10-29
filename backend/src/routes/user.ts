@@ -14,37 +14,39 @@ const router = Router();
 
 router.use(authMiddleware)
 
-router.get("/current", controllersWrapper(async (req: Request, res: Response) => {
-    const authHeader = req.headers.authorization ?? "";
-    const [tokenType, token] = authHeader.split(" ");
+router.get("/current/:userId", controllersWrapper(async (req: Request, res: Response) => {
+    // const authHeader = req.headers.authorization ?? "";
+    // const [tokenType, token] = authHeader.split(" ");
+    //
+    // if (!token || !tokenType) {
+    //     return res.status(401).send({
+    //         status: 401,
+    //         success: false,
+    //         message: "No token provided or invalid token!"
+    //     });
+    // }
 
-    if (!token || !tokenType) {
-        return res.status(401).send({
-            status: 401,
-            success: false,
-            message: "No token provided or invalid token!"
-        });
-    }
+    const {userId} = req.params;
 
     let connection: PoolConnection | null = null;
 
     try {
-        const decoded = jwt.decode(token) as JwtPayload;
-
-        if (!decoded || typeof decoded === 'string' || !decoded.email) {
-            return res.status(401).send({
-                status: 401,
-                success: false,
-                message: 'Invalid token!',
-            });
-        }
+        // const decoded = jwt.decode(token) as JwtPayload;
+        //
+        // if (!decoded || typeof decoded === 'string' || !decoded.email) {
+        //     return res.status(401).send({
+        //         status: 401,
+        //         success: false,
+        //         message: 'Invalid token!',
+        //     });
+        // }
 
         connection = await getConnection();
 
-        const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, phone, role, verify FROM users WHERE email = ?`;
+        const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, phone, role, verify FROM users WHERE user_id = ?`;
 
         const user = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(sqlQuery, [decoded.email], (err, results) => {
+            connection!.query(sqlQuery, [userId], (err, results) => {
                 if (err) return reject(err);
                 resolve(results);
             });
@@ -136,7 +138,7 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
             });
         });
 
-        if (result.affectedRows === 0) {
+        if (result && result.affectedRows === 0) {
             return res.status(404).send({
                 status: 404,
                 success: false,

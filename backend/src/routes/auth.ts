@@ -28,7 +28,7 @@ router.post('/registration', controllersWrapper(async (req: Request, res: Respon
             });
         });
 
-        if (existingUser.length > 0) {
+        if (existingUser && existingUser.length > 0) {
             return res.status(400).send({
                 status: 400,
                 success: false,
@@ -592,9 +592,9 @@ router.post('/login', controllersWrapper(async (req: Request, res: Response) => 
     let connection: PoolConnection | null = null;
 
     try {
-        connection = await getConnection(); // Получаем соединение
+        connection = await getConnection();
 
-        const sqlQuery = `SELECT user_firstname, user_lastname, email, password, role
+        const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, password, role
                           FROM users
                           WHERE verify = 1
                             AND email = ?`;
@@ -615,7 +615,7 @@ router.post('/login', controllersWrapper(async (req: Request, res: Response) => 
             });
         }
 
-        const { user_firstname, user_lastname, password: hash, role } = rows;
+        const { user_firstname, user_lastname, password: hash, role, user_id } = rows;
 
         const isPasswordValid = await bcrypt.compare(password, hash);
         if (!isPasswordValid) {
@@ -636,7 +636,7 @@ router.post('/login', controllersWrapper(async (req: Request, res: Response) => 
             status: 200,
             success: true,
             message: 'Success',
-            results: { token, role },
+            results: { token, role, user_id },
         });
 
     } catch (err) {

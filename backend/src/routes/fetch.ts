@@ -20,6 +20,7 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
             e.description,
             e.ticket_price,
             e.available_tickets,
+            e.isAvailable,
             v.venue_id,
             v.venue_name,
             v.city,
@@ -116,7 +117,8 @@ router.get("/user_tickets/:user_id", controllersWrapper(async (req: Request, res
             t.ticket_status,
             e.event_name,
             e.event_date,
-            e.ticket_price
+            e.ticket_price,
+            e.isAvailable
         FROM tickets t
                  JOIN events e ON t.event_id = e.event_id
         WHERE t.user_id = ?

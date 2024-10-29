@@ -44,8 +44,8 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
 
                 setAvailableStateTickets(prev => prev - quantity);
 
-                toast.success(`You successfully booked ${quantity} tickets.`, {
-                    autoClose: 2000,
+                toast.success(`You successfully booked ${quantity} tickets. Please pay for it or booking will be canceled in 1 hour!`, {
+                    autoClose: 3000,
                 });
                 refetchUserTickets();
 
@@ -82,6 +82,7 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
             <form className='tickets-form__form' onSubmit={handleSubmit}>
                 <div className='tickets-form__form-container'>
                     <label className='tickets-form__form-label' htmlFor="quantity">Quantity</label>
+                    <label className='tickets-form__form-label-red' htmlFor="quantity">* Remember: Booking will be canceled in 1 hour!</label>
                     <input className='tickets-form__form-input' onChange={handleChange} type="number" id="quantity"
                            name="quantity"
                            value={quantity} pattern=".{1}" min={1}

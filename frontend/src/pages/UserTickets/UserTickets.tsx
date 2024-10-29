@@ -10,8 +10,10 @@ import {DateTime} from "luxon";
 import TicketsReturnForm from "../../components/TicketsReturnForm/TicketsReturnForm.tsx";
 import {useSelector} from "react-redux";
 import {selectUserId,} from "../../redux/auth/auth_selector.ts";
+import {usePayTicketsMutation} from "../../redux/tickets/tickets_api.ts";
 
 const UserTickets = () => {
+    const [payTickets] = usePayTicketsMutation()
     const userId = useSelector(selectUserId);
     const {
         data: userInfo,
@@ -32,6 +34,7 @@ const UserTickets = () => {
 
     const [ticketsVisible, setTicketsVisible] = useState<{ [key: number]: boolean }>({});
     const [isClicked, setIsClicked] = useState(false);
+    const [ticketQuantity, setTicketQuantity] = useState<{ [key: number]: number }>({});
 
     const handleClick = () => {
         setIsClicked(prevState => !prevState);
@@ -39,6 +42,47 @@ const UserTickets = () => {
 
     const toggleTicketsVisibility = (eventId: number) => {
         setTicketsVisible(prev => ({...prev, [eventId]: !prev[eventId]}));
+    };
+
+    const handleQuantityChange = (eventId: number, quantity: number) => {
+        setTicketQuantity(prev => ({...prev, [eventId]: quantity}));
+    };
+
+    const handlePurchase = async (eventId: number) => {
+        const quantity = ticketQuantity[eventId];
+
+        if (!quantity || quantity < 1) {
+            toast.error("Please enter a valid number of tickets to purchase.", {
+                autoClose: 2000,
+            });
+            return;
+        }
+
+        const userTickets = data?.data.filter(ticket =>
+            ticket.event_id === Number(eventId) && ticket.ticket_status === "booked"
+        ) || [];
+        const totalUserTickets = userTickets.length;
+
+        console.log(totalUserTickets)
+
+        if (quantity > totalUserTickets) {
+            toast.error(`You cannot pay more tickets than you have. You have ${totalUserTickets} booked tickets for this event.`, {
+                autoClose: 2000,
+            });
+            return;
+        }
+
+        try {
+            await payTickets({ user_id: Number(userInfo?.results[0].user_id), quantity, event_id: eventId }).unwrap();
+            toast.success(`Purchased ${quantity} ticket(s) for event ID ${eventId}`, {
+                autoClose: 2000,
+            });
+            window.location.reload();
+        } catch (error) {
+            toast.error("Failed to pay tickets. Please try again.", {
+                autoClose: 2000,
+            });
+        }
     };
 
     const groupedTickets = data?.data?.reduce((acc: { [key: number]: any[] }, ticket: UserTicketsData) => {
@@ -68,7 +112,7 @@ const UserTickets = () => {
                     <div className='user__tickets-wrapper'>
                         {isLoading && <p>Tickets loading...</p>}
                         {isError && <h3 className='user__tickets-title'>
-                            You have not got a tickets!
+                            You have not got tickets!
                         </h3>}
                         {groupedTickets && Object.keys(groupedTickets).map(eventId => {
                             const ticketsForEvent = groupedTickets[Number(eventId)];
@@ -100,6 +144,22 @@ const UserTickets = () => {
                                                     </div>
                                                 ))}
                                             </div>
+                                            {/* Форма для ввода количества билетов */}
+                                            <div className="user__tickets-purchase-form">
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    value={ticketQuantity[Number(eventId)] || 0}
+                                                    onChange={(e) => handleQuantityChange(Number(eventId), parseInt(e.target.value))}
+                                                    className="user__tickets-quantity-input"
+                                                />
+                                                <button
+                                                    onClick={() => handlePurchase(Number(eventId))}
+                                                    className="user__tickets-purchase-button"
+                                                >
+                                                    Buy Tickets
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -111,7 +171,7 @@ const UserTickets = () => {
                                 className={`user__tickets-button ${isClicked ? 'user__tickets-button-disabled' : ''}`}
                                 type='button' disabled={isClicked} onClick={handleClick}>Return tickets
                             </button> : <h3 className='user__tickets-title'>
-                                You have not got a tickets!
+                                You have not got tickets!
                             </h3>
                         }
 
@@ -126,4 +186,4 @@ const UserTickets = () => {
         </>
     )
 }
-export default UserTickets
+export default UserTickets;

@@ -1,8 +1,8 @@
-.tickets-form {
+.tickets-return {
   &__form {
-    padding: 0 1.5rem;
-    width: 100vw;
     max-width: 768px;
+    width: 100%;
+    margin-top: 2rem;
 
     &-container {
       width: 100%;
@@ -18,15 +18,10 @@
 
     &-label {
       font-weight: 500;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 140%;
       letter-spacing: 0.02em;
       color: var(--heading-color);
-
-      &-red {
-        color: red;
-        font-size: 12px;
-      }
     }
 
     &-input {

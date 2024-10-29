@@ -1,8 +1,8 @@
-import {useReturnTicketsMutation} from "../../redux/tickets/tickets_api.ts";
-import {UsersResponse} from "../../interfaces/users/UsersResponse.ts";
+import { useReturnTicketsMutation } from "../../redux/tickets/tickets_api.ts";
+import { UsersResponse } from "../../interfaces/users/UsersResponse.ts";
 import {ChangeEvent, FC, FormEvent, useState} from "react";
-import {UserTicketsResponse} from "../../interfaces/fetch/UserTicketsResponse.ts";
-import './TicketsReturnForm.scss'
+import { UserTicketsResponse } from "../../interfaces/fetch/UserTicketsResponse.ts";
+import './TicketsPayForm.scss'
 import {toast} from "react-toastify";
 import {DateTime} from "luxon";
 
@@ -11,7 +11,7 @@ type TicketsReturnFormProps = {
     ticketsInfo: UserTicketsResponse | undefined;
 }
 
-const TicketsReturnForm: FC<TicketsReturnFormProps> = ({userInfo, ticketsInfo}) => {
+const TicketsPayForm: FC<TicketsReturnFormProps> = ({ userInfo, ticketsInfo }) => {
     const [returnTickets] = useReturnTicketsMutation();
     const [quantity, setQuantity] = useState<number>(1);
     const [event_id, setEventId] = useState<string>('');
@@ -19,9 +19,7 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({userInfo, ticketsInfo}) 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const userTickets = ticketsInfo?.data.filter(ticket =>
-            ticket.event_id === Number(event_id) && ticket.ticket_status === "booked"
-        ) || [];
+        const userTickets = ticketsInfo?.data.filter(ticket => ticket.event_id === Number(event_id)) || [];
         const totalUserTickets = userTickets.length;
 
         if (quantity > totalUserTickets) {
@@ -32,7 +30,7 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({userInfo, ticketsInfo}) 
         }
 
         try {
-            await returnTickets({user_id: userInfo.results[0].user_id, event_id, quantity}).unwrap();
+            await returnTickets({ user_id: userInfo.results[0].user_id, event_id, quantity }).unwrap();
             toast.success("Tickets returned successfully!", {
                 autoClose: 2000,
             });
@@ -45,7 +43,7 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({userInfo, ticketsInfo}) 
     }
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
 
         switch (name) {
             case 'quantity':
@@ -69,7 +67,7 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({userInfo, ticketsInfo}) 
                 };
             })
             .filter(event => {
-                const eventDate = DateTime.fromISO(event.event_date as string, {zone: 'utc'});
+                const eventDate = DateTime.fromISO(event.event_date as string, { zone: 'utc' });
                 return eventDate > DateTime.now();
             })
         : [];
@@ -78,8 +76,7 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({userInfo, ticketsInfo}) 
         <form className='tickets-return__form' onSubmit={handleSubmit}>
             <div className='tickets-return__form-container'>
                 <label className='tickets-return__form-label' htmlFor="eventId">Event ID</label>
-                <select className='tickets-return__form-input' onChange={handleChange} name="eventId" id="eventId"
-                        value={event_id} required>
+                <select className='tickets-return__form-input' onChange={handleChange} name="eventId" id="eventId" value={event_id} required>
                     <option value="" disabled selected>Выберите событие</option>
                     {uniqueEvents.map(event => (
                         <option key={event.event_id} value={event.event_id}>
@@ -100,4 +97,4 @@ const TicketsReturnForm: FC<TicketsReturnFormProps> = ({userInfo, ticketsInfo}) 
     );
 }
 
-export default TicketsReturnForm;
+export default TicketsPayForm;
