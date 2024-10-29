@@ -37,7 +37,8 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
         category: categoryName || '',
         description: eventById?.description || '',
         ticketPrice: eventById?.ticket_price || 0,
-        availableTickets: eventById?.available_tickets || 1
+        availableTickets: eventById?.available_tickets || 1,
+        isAvailable: eventById?.isAvailable ?? true
     });
 
     const formFields = [
@@ -67,6 +68,13 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
         }));
     };
 
+    const handleToggleAvailability = () => {
+        setFormData((prevData) => ({
+            ...prevData,
+            isAvailable: !prevData.isAvailable
+        }));
+    };
+
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -89,14 +97,14 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
                 category: formData.category,
                 description: formData.description,
                 ticket_price: formData.ticketPrice,
-                available_tickets: formData.availableTickets
+                available_tickets: formData.availableTickets,
+                isAvailable: formData.isAvailable
             }).unwrap();
 
             toast.success('Event edited successfully!', {
                 autoClose: 2000,
             });
-            navigate('/')
-            window.location.reload()
+            navigate('/');
             resetForm();
         } catch (err: any) {
             toast.error('Something went wrong', {
@@ -116,9 +124,11 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
             category: '',
             description: '',
             ticketPrice: 0,
-            availableTickets: 1
+            availableTickets: 1,
+            isAvailable: true // Reset isAvailable
         });
     };
+
     return (
         <>
             {!isAdmin ?
@@ -136,11 +146,11 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
                                     type={field.type}
                                     id={field.name}
                                     name={field.name}
-                                    value={formData[field.name as keyof typeof formData]}
+                                    value={formData[field.name as keyof typeof formData] as string | number}
                                     onChange={handleChange}
                                     {...(field.min !== undefined ? {min: field.min} : {})}
                                     {...(field.minDate ? {min: field.minDate} : {})}
-                                    {...(field.required) ? {required: field.required} : {}}
+                                    {...(field.required ? {required: field.required} : {})}
                                 />
                             </div>
                         ))}
@@ -172,12 +182,25 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
                             )}
                         </div>
 
+                        <div className='eventEdit-form__form-container'>
+                            <label className='eventEdit-form__form-label'>
+                                Are sales available? :
+                                <button
+                                    type="button"
+                                    className={`eventEdit-form__toggle-button ${formData.isAvailable ? 'active' : ''}`}
+                                    onClick={handleToggleAvailability}
+                                >
+                                    {formData.isAvailable ? 'On' : 'Off'}
+                                </button>
+                            </label>
+                        </div>
+
                         <button className='eventEdit-form__form-button' type="submit">Edit Event</button>
                     </form>
                 </div>)
             }
-
         </>
-    )
+    );
 }
-export default TicketsFormEdit
+
+export default TicketsFormEdit;

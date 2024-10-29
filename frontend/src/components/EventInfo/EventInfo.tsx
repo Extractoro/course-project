@@ -1,12 +1,12 @@
 import './EventInfo.scss';
-import { useFetchCategoriesQuery, useFetchEventsQuery } from "../../redux/fetch/fetch_api.ts";
-import { useNavigate, useParams } from "react-router-dom";
+import {useFetchCategoriesQuery, useFetchEventsQuery} from "../../redux/fetch/fetch_api.ts";
+import {useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import { CategoriesData } from "../../interfaces/fetch/CategoryResponse.ts";
-import { DateTime } from "luxon";
+import {CategoriesData} from "../../interfaces/fetch/CategoryResponse.ts";
+import {DateTime} from "luxon";
 import TicketsForm from "../TicketsForm/TicketsForm.tsx";
-import { useCurrentUserQuery } from "../../redux/user/users_api.ts";
-import { useSelector } from "react-redux";
+import {useCurrentUserQuery} from "../../redux/user/users_api.ts";
+import {useSelector} from "react-redux";
 import {selectUserId, selectUserRole} from "../../redux/auth/auth_selector.ts";
 import TicketsFormEdit from "../TicketsFormEdit/TicketsFormEdit.tsx";
 import {toast} from "react-toastify";
@@ -15,11 +15,11 @@ import {useDeleteEventMutation} from "../../redux/admin/admin_api.ts";
 const EventInfo = () => {
     const navigate = useNavigate();
     const userId = useSelector(selectUserId);
-    const { data: eventsData, error: eventsError, isLoading: eventsLoading } = useFetchEventsQuery();
-    const { data: categoriesData } = useFetchCategoriesQuery();
-    const { data: userData } = useCurrentUserQuery({userId});
+    const {data: eventsData, error: eventsError, isLoading: eventsLoading} = useFetchEventsQuery();
+    const {data: categoriesData} = useFetchCategoriesQuery();
+    const {data: userData} = useCurrentUserQuery({userId});
     const [deleteEvent] = useDeleteEventMutation();
-    const { eventId } = useParams<{ eventId: string }>();
+    const {eventId} = useParams<{ eventId: string }>();
     const [isBookFormVisible, setIsBookFormVisible] = useState(false);
     const [isEditFormVisible, setIsEditFormVisible] = useState(false);
 
@@ -94,13 +94,23 @@ const EventInfo = () => {
                             </p>
                             <p className='event__tickets-price'><strong>Price: </strong>{eventById.ticket_price} UAH</p>
                         </div>
-                        <button className={`event-info__button ${isBookFormVisible ? 'event-info__button-disabled' : ''}`}
+                        {eventById.isAvailable ? (
+                            <button
+                                className={`event-info__button ${isBookFormVisible ? 'event-info__button-disabled' : ''}`}
                                 type='button' disabled={isBookFormVisible} onClick={handleBookClick}>
-                            Book ticket
-                        </button>
+                                Book ticket
+                            </button>) : (
+                            <button
+                                className={`event-info__button ${'event-info__button-disabled'}`}
+                                type='button' disabled={true}>
+                                The event is not available to book
+                            </button>
+                        )}
+
                         {isAdmin && (
-                            <button className={`event-info__button ${isEditFormVisible ? 'event-info__button-disabled' : ''}`}
-                                    type='button' disabled={isEditFormVisible} onClick={handleEditClick}>
+                            <button
+                                className={`event-info__button ${isEditFormVisible ? 'event-info__button-disabled' : ''}`}
+                                type='button' disabled={isEditFormVisible} onClick={handleEditClick}>
                                 Edit Event
                             </button>
                         )}
@@ -116,12 +126,12 @@ const EventInfo = () => {
             {isBookFormVisible && !isEditFormVisible && eventId && userData && (
                 <div className='event-info-center'>
                     <TicketsForm eventId={eventId} userData={userData} availableTicketsState={availableTicketsState}
-                                 setAvailableStateTickets={setAvailableStateTickets} />
+                                 setAvailableStateTickets={setAvailableStateTickets}/>
                 </div>
             )}
             {isEditFormVisible && !isBookFormVisible && eventId && userData && (
                 <div className='event-info-center'>
-                    <TicketsFormEdit eventById={eventById} categoryName={categoryName} />
+                    <TicketsFormEdit eventById={eventById} categoryName={categoryName}/>
                 </div>
             )}
         </>

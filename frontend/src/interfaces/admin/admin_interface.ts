@@ -10,6 +10,7 @@ export interface AdminRequestInterface {
     description?: string | null;
     ticket_price: number;
     available_tickets: number;
+    isAvailable: boolean
 }
 
 export interface AdminDeleteRequestInterface {

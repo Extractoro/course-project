@@ -31,7 +31,8 @@ const EventAddForm = () => {
         category: '',
         description: '',
         ticketPrice: 0,
-        availableTickets: 1
+        availableTickets: 1,
+        isAvailable: true
     });
 
     const formFields = [
@@ -51,6 +52,13 @@ const EventAddForm = () => {
         setFormData((prevData) => ({
             ...prevData,
             [name]: name === 'capacity' || name === 'ticketPrice' || name === 'availableTickets' ? Number(value) : value
+        }));
+    };
+
+    const handleToggleAvailability = () => {
+        setFormData((prevData) => ({
+            ...prevData,
+            isAvailable: !prevData.isAvailable
         }));
     };
 
@@ -82,7 +90,8 @@ const EventAddForm = () => {
                 category: formData.category,
                 description: formData.description,
                 ticket_price: formData.ticketPrice,
-                available_tickets: formData.availableTickets
+                available_tickets: formData.availableTickets,
+                isAvailable: formData.isAvailable
             }).unwrap();
 
             toast.success('Event created successfully!', {
@@ -107,7 +116,8 @@ const EventAddForm = () => {
             category: '',
             description: '',
             ticketPrice: 0,
-            availableTickets: 1
+            availableTickets: 1,
+            isAvailable: true
         });
     };
 
@@ -128,7 +138,7 @@ const EventAddForm = () => {
                                     type={field.type}
                                     id={field.name}
                                     name={field.name}
-                                    value={formData[field.name as keyof typeof formData]}
+                                    value={formData[field.name as keyof typeof formData] as string | number}
                                     onChange={handleChange}
                                     {...(field.min !== undefined ? {min: field.min} : {})}
                                     {...(field.minDate ? {min: field.minDate} : {})}
@@ -162,6 +172,19 @@ const EventAddForm = () => {
                                     ))}
                                 </select>
                             )}
+                        </div>
+
+                        <div className='eventAdd-form__form-container'>
+                            <label className='eventAdd-form__form-label'>
+                                Are sales available? :
+                                <button
+                                    type="button"
+                                    className={`eventAdd-form__toggle-button ${formData.isAvailable ? 'active' : ''}`}
+                                    onClick={handleToggleAvailability}
+                                >
+                                    {formData.isAvailable ? 'On' : 'Off'}
+                                </button>
+                            </label>
                         </div>
 
                         <button className='eventAdd-form__form-button' type="submit">Create Event</button>

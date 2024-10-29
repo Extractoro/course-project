@@ -5,6 +5,7 @@ export interface EventData {
     category_id: number;
     description: string | null;
     ticket_price: number;
+    isAvailable: boolean;
     available_tickets: number;
     venue_id: number;
     venue_name: string;
