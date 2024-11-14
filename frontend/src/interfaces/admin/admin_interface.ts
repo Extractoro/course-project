@@ -10,7 +10,12 @@ export interface AdminRequestInterface {
     description?: string | null;
     ticket_price: number;
     available_tickets: number;
-    isAvailable: boolean
+    isAvailable: boolean;
+    isRecurring: boolean;
+    frequency: string;
+    repeat_interval: number;
+    start_date: string;
+    end_date: string;
 }
 
 export interface AdminDeleteRequestInterface {

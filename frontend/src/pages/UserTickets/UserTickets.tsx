@@ -166,13 +166,11 @@ const UserTickets = () => {
                             );
                         })}
 
-                        {!isError && groupedTickets && !(Object.keys(groupedTickets).length === 0) ?
+                        {!isError && groupedTickets && !(Object.keys(groupedTickets).length === 0) &&
                             <button
                                 className={`user__tickets-button ${isClicked ? 'user__tickets-button-disabled' : ''}`}
                                 type='button' disabled={isClicked} onClick={handleClick}>Return tickets
-                            </button> : <h3 className='user__tickets-title'>
-                                You have not got tickets!
-                            </h3>
+                            </button>
                         }
 
                         {isClicked && (

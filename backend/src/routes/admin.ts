@@ -21,11 +21,30 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
       event_name,
       event_date,
       category,
-      description = null,
+      description = '',
       ticket_price,
       available_tickets,
-      isAvailable, // Добавлено новое поле
+      isAvailable,
+      isRecurring = false,
+      start_date = null,
+      end_date = null,
+      frequency = null,
+      repeat_interval = 1
    } = req.body;
+
+   console.log(isRecurring)
+   console.log(start_date)
+   console.log(end_date)
+   console.log(frequency)
+   console.log(isAvailable)
+
+
+   if (isRecurring && (!start_date || !end_date || !frequency)) {
+      return res.status(400).send({
+         success: false,
+         message: 'Missing required fields for recurring event: start_date, end_date, and frequency are required.',
+      });
+   }
 
    const categoryLower = category.trim().toLowerCase();
    const checkCategoryQuery = `SELECT category_id FROM categories WHERE LOWER(category_name) = ?`;
@@ -69,7 +88,7 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
          });
       });
 
-      if (eventRows && eventRows.length > 0) {
+      if (eventRows) {
          return res.status(409).send({
             status: 409,
             success: false,
@@ -78,7 +97,7 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
       }
 
       const addVenueQuery = `INSERT INTO venues (venue_name, address, city, capacity) VALUES (?, ?, ?, ?)`;
-      const addEventQuery = `INSERT INTO events (event_name, event_date, category_id, description, venue_id, ticket_price, available_tickets, isAvailable) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+      const addEventQuery = `INSERT INTO events (event_name, event_date, category_id, description, venue_id, ticket_price, available_tickets, isAvailable, is_recurring) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       await new Promise<void>((resolve, reject) => {
          connection!.beginTransaction(async (err) => {
@@ -94,15 +113,27 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
 
                const venue_id = venueResult.insertId;
 
-               console.log(isAvailable)
-
-
-               await new Promise<void>((resolve, reject) => {
-                  connection!.query(addEventQuery, [event_name, event_date, categoryId, description, venue_id, ticket_price, available_tickets, isAvailable], (err, result) => {
+               const eventResult = await new Promise<any>((resolve, reject) => {
+                  connection!.query(addEventQuery, [event_name, event_date, categoryId, description, venue_id, ticket_price, available_tickets, isAvailable, isRecurring], (err, result) => {
                      if (err) return reject(err);
-                     resolve();
+                     resolve(result);
                   });
                });
+
+               const event_id = eventResult.insertId;
+
+               if (isRecurring && start_date && end_date && frequency) {
+                  const addRecurringEventQuery = `
+                     INSERT INTO recurring_events (event_id, frequency, repeat_interval, start_date, end_date)
+                     VALUES (?, ?, ?, ?, ?)
+                  `;
+                  await new Promise<void>((resolve, reject) => {
+                     connection!.query(addRecurringEventQuery, [event_id, frequency, repeat_interval, start_date, end_date], (err) => {
+                        if (err) return reject(err);
+                        resolve();
+                     });
+                  });
+               }
 
                connection!.commit((err) => {
                   if (err) {
@@ -154,7 +185,7 @@ router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Res
       event_name,
       event_date,
       category,
-      description = null,
+      description = '',
       ticket_price,
       available_tickets,
       isAvailable, // Добавлено новое поле

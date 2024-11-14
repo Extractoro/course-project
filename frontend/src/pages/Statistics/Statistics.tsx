@@ -22,11 +22,13 @@ const Statistics = () => {
 
     useEffect(() => {
         if (ticketsData?.data) {
+            const paidTickets = ticketsData.data.filter((ticket: AdminTicketDataInterface) => ticket.ticket_status === "paid");
+
             const categoryData: { [key: string]: { total: number, count: number } } = {};
             const monthCounts: Record<string, number> = {};
             let totalPrice = 0;
 
-            ticketsData.data.forEach((ticket: AdminTicketDataInterface) => {
+            paidTickets.forEach((ticket: AdminTicketDataInterface) => {
                 const category = ticket.category_name;
                 if (category) {
                     categoryCounts[category] = (categoryCounts[category] || 0) + 1;
@@ -67,12 +69,13 @@ const Statistics = () => {
             setTicketCountsByMonth(monthCounts);
             setAveragePricesByCategory(averages);
             setAverageTicketPriceInfo({
-                average: totalPrice / ticketsData.data.length,
+                average: totalPrice / paidTickets.length,
                 mostExpensive: mostExpensiveCategory,
                 cheapest: cheapestCategory
             });
         }
     }, [ticketsData]);
+
 
     useEffect(() => {
         if (usersData) {

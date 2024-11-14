@@ -8,6 +8,7 @@ import ticketsRouter from "./routes/tickets";
 import fetchRouter from "./routes/fetch";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import {setupRecurringEventCron} from "./utils/cronJobs";
 
 dotenv.config();
 
@@ -30,6 +31,8 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('tiny'));
+
+setupRecurringEventCron()
 
 app.use('/auth', authRouter)
 app.use('/admin', adminRouter)
