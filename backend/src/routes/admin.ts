@@ -32,13 +32,6 @@ router.post("/create_event", controllersWrapper(async (req: Request, res: Respon
       repeat_interval = 1
    } = req.body;
 
-   console.log(isRecurring)
-   console.log(start_date)
-   console.log(end_date)
-   console.log(frequency)
-   console.log(isAvailable)
-
-
    if (isRecurring && (!start_date || !end_date || !frequency)) {
       return res.status(400).send({
          success: false,
