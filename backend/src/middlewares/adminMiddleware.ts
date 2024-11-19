@@ -105,7 +105,7 @@ const adminMiddleware = async (req: Request, res: Response, next: NextFunction):
 
         connection.release();
 
-        if (rows.length === 0) {
+        if (rows && rows.length === 0) {
             return res.status(404).send({
                 status: 404,
                 success: false,

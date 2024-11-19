@@ -20,6 +20,7 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
             e.description,
             e.ticket_price,
             e.available_tickets,
+            e.capacity_event
             e.isAvailable,
             v.venue_id,
             v.venue_name,
@@ -27,24 +28,13 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
             v.address,
             v.capacity
         FROM events e
-                 LEFT JOIN venues v ON e.venue_id = v.venue_id
+        LEFT JOIN venues v ON e.venue_id = v.venue_id
     `;
 
-    let connection: PoolConnection | null = null;
+    const connection = await getConnection();
 
     try {
-        connection = await getConnection();
-
-        if (!connection) {
-            throw new Error("Failed to establish database connection.");
-        }
-
-        const events = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(getAllEventsQuery, (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+        const [events] = await connection.query<any[]>(getAllEventsQuery);
 
         res.status(200).send({
             status: 200,
@@ -59,29 +49,17 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
             message: 'Internal Server Error',
         });
     } finally {
-        if (connection) {
-            connection.release();
-        }
+        connection.release();
     }
 }));
 
 router.get('/categories', controllersWrapper(async (req: Request, res: Response) => {
     const getAllCategoriesQuery = `SELECT * FROM categories`;
-    let connection: PoolConnection | null = null;
+
+    const connection = await getConnection();
 
     try {
-        connection = await getConnection();
-
-        if (!connection) {
-            throw new Error("Failed to establish database connection.");
-        }
-
-        const categories = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(getAllCategoriesQuery, (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+        const [categories] = await connection.execute<any[]>(getAllCategoriesQuery);
 
         res.status(200).send({
             status: 200,
@@ -96,9 +74,7 @@ router.get('/categories', controllersWrapper(async (req: Request, res: Response)
             message: 'Internal Server Error',
         });
     } finally {
-        if (connection) {
-            connection.release();
-        }
+        connection.release();
     }
 }));
 
@@ -124,21 +100,10 @@ router.get("/user_tickets/:user_id", controllersWrapper(async (req: Request, res
         WHERE t.user_id = ?
     `;
 
-    let connection: PoolConnection | null = null;
+    const connection = await getConnection();
 
     try {
-        connection = await getConnection();
-
-        if (!connection) {
-            throw new Error("Failed to establish database connection.");
-        }
-
-        const tickets = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(getUserTicketsQuery, [user_id], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+        const [tickets] = await connection.query<any[]>(getUserTicketsQuery, [user_id]);
 
         if (tickets.length === 0) {
             return res.status(404).send({
@@ -161,9 +126,7 @@ router.get("/user_tickets/:user_id", controllersWrapper(async (req: Request, res
             message: 'Internal Server Error',
         });
     } finally {
-        if (connection) {
-            connection.release();
-        }
+        connection.release();
     }
 }));
 

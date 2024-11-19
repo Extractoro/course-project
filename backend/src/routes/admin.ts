@@ -4,7 +4,6 @@ import authMiddleware from "../middlewares/authMiddleware";
 import adminMiddleware from "../middlewares/adminMiddleware";
 import controllersWrapper from "../helpers/controllersWrapper";
 import {getConnection} from "../utils/database";
-import {PoolConnection} from "mysql";
 
 dotenv.config();
 const router = Router();
@@ -12,398 +11,421 @@ const router = Router();
 // router.use(authMiddleware)
 // router.use(adminMiddleware)
 
-router.post("/create_event", controllersWrapper(async (req: Request, res: Response) => {
-   const {
-      venue_name,
-      address,
-      city,
-      capacity,
-      event_name,
-      event_date,
-      category,
-      description = '',
-      ticket_price,
-      available_tickets,
-      isAvailable,
-      isRecurring = false,
-      start_date = null,
-      end_date = null,
-      frequency = null,
-      repeat_interval = 1
-   } = req.body;
+router.post(
+    "/create_event",
+    controllersWrapper(async (req: Request, res: Response) => {
+       const {
+          venue_name,
+          address,
+          city,
+          capacity,
+          event_name,
+          event_date,
+          category,
+          description = "",
+          ticket_price,
+          isAvailable,
+          available_tickets,
+          isRecurring = false,
+          start_date = null,
+          end_date = null,
+          frequency = null,
+          repeat_interval = 1,
+       } = req.body;
 
-   if (isRecurring && (!start_date || !end_date || !frequency)) {
-      return res.status(400).send({
-         success: false,
-         message: 'Missing required fields for recurring event: start_date, end_date, and frequency are required.',
-      });
-   }
+       if (
+           !venue_name ||
+           !address ||
+           !city ||
+           !capacity ||
+           !event_name ||
+           !event_date ||
+           !category || !available_tickets ||
+           !ticket_price
+       ) {
+          return res.status(400).send({
+             success: false,
+             message: "All required fields must be filled: venue_name, address, city, capacity, event_name, event_date, category, ticket_price, available_tickets, and capacity_event.",
+          });
+       }
 
-   const categoryLower = category.trim().toLowerCase();
-   const checkCategoryQuery = `SELECT category_id FROM categories WHERE LOWER(category_name) = ?`;
+       if (isRecurring && (!start_date || !end_date || !frequency)) {
+          return res.status(400).send({
+             success: false,
+             message:
+                 "Missing required fields for recurring event: start_date, end_date, and frequency are required.",
+          });
+       }
 
-   let connection: PoolConnection | null = null;
+       if (Number(available_tickets) > Number(capacity)) {
+          return res.status(400).send({
+             success: false,
+             message: "Available tickets cannot exceed venue capacity.",
+          });
+       }
 
-   try {
-      connection = await getConnection();
+       const connection = await getConnection();
 
-      const [categoryRows] = await new Promise<any[]>((resolve, reject) => {
-         connection!.query(checkCategoryQuery, [categoryLower], (err, results) => {
-            if (err) return reject(err);
-            resolve(results);
-         });
-      });
+       try {
+          await connection.beginTransaction();
 
-      if (categoryRows.length === 0) {
-         return res.status(400).send({
-            status: 400,
-            success: false,
-            message: 'Invalid category',
-         });
-      }
+          const [categoryRows] = await connection.query<any[]>(
+              `SELECT category_id FROM categories WHERE LOWER(category_name) = ?`,
+              [category.trim().toLowerCase()]
+          );
 
-      const categoryId = categoryRows.category_id;
+          if (categoryRows && categoryRows.length === 0) {
+             return res.status(400).send({
+                success: false,
+                message: "Invalid category.",
+             });
+          }
 
-      const checkEventQuery = `
-            SELECT * FROM events 
-            JOIN venues ON events.venue_id = venues.venue_id
-            WHERE event_name = ? 
-            AND event_date = ? 
-            AND venue_name = ? 
-            AND address = ? 
-            AND city = ?
-        `;
+          const categoryId = categoryRows[0].category_id;
 
-      const [eventRows] = await new Promise<any[]>((resolve, reject) => {
-         connection!.query(checkEventQuery, [event_name, event_date, venue_name, address, city], (err, results) => {
-            if (err) return reject(err);
-            resolve(results);
-         });
-      });
+          const [eventRows] = await connection.query<any[]>(
+              `
+                SELECT * FROM events 
+                JOIN venues ON events.venue_id = venues.venue_id
+                WHERE event_name = ? AND event_date = ? AND venue_name = ? AND address = ? AND city = ?
+            `,
+              [event_name, event_date, venue_name, address, city]
+          );
 
-      if (eventRows) {
-         return res.status(409).send({
-            status: 409,
-            success: false,
-            message: 'Event with the same name, date, and venue already exists',
-         });
-      }
+          if (eventRows.length > 0) {
+             return res.status(409).send({
+                success: false,
+                message: "Event with the same name, date, and venue already exists.",
+             });
+          }
 
-      const addVenueQuery = `INSERT INTO venues (venue_name, address, city, capacity) VALUES (?, ?, ?, ?)`;
-      const addEventQuery = `INSERT INTO events (event_name, event_date, category_id, description, venue_id, ticket_price, available_tickets, isAvailable, is_recurring) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          const [venueResult] = await connection.query<any>(
+              `INSERT INTO venues (venue_name, address, city, capacity) VALUES (?, ?, ?, ?)`,
+              [venue_name, address, city, capacity]
+          );
 
-      await new Promise<void>((resolve, reject) => {
-         connection!.beginTransaction(async (err) => {
-            if (err) return reject(err);
+          const venue_id = venueResult.insertId;
 
-            try {
-               const venueResult = await new Promise<any>((resolve, reject) => {
-                  connection!.query(addVenueQuery, [venue_name, address, city, capacity], (err, result) => {
-                     if (err) return reject(err);
-                     resolve(result);
-                  });
-               });
+          const [eventResult] = await connection.query<any>(
+              `INSERT INTO events (event_name, event_date, category_id, description, venue_id, ticket_price, available_tickets, isAvailable, is_recurring, capacity_event) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                 event_name,
+                 event_date,
+                 categoryId,
+                 description,
+                 venue_id,
+                 ticket_price,
+                 available_tickets,
+                 isAvailable,
+                 isRecurring,
+                 available_tickets,
+              ]
+          );
 
-               const venue_id = venueResult.insertId;
+          const event_id = eventResult.insertId;
 
-               const eventResult = await new Promise<any>((resolve, reject) => {
-                  connection!.query(addEventQuery, [event_name, event_date, categoryId, description, venue_id, ticket_price, available_tickets, isAvailable, isRecurring], (err, result) => {
-                     if (err) return reject(err);
-                     resolve(result);
-                  });
-               });
+          if (isRecurring && start_date && end_date && frequency) {
+             await connection.query(
+                 `INSERT INTO recurring_events (event_id, frequency, repeat_interval, start_date, end_date) VALUES (?, ?, ?, ?, ?)`,
+                 [event_id, frequency, repeat_interval, start_date, end_date]
+             );
+          }
 
-               const event_id = eventResult.insertId;
+          await connection.commit();
 
-               if (isRecurring && start_date && end_date && frequency) {
-                  const addRecurringEventQuery = `
-                     INSERT INTO recurring_events (event_id, frequency, repeat_interval, start_date, end_date)
-                     VALUES (?, ?, ?, ?, ?)
-                  `;
-                  await new Promise<void>((resolve, reject) => {
-                     connection!.query(addRecurringEventQuery, [event_id, frequency, repeat_interval, start_date, end_date], (err) => {
-                        if (err) return reject(err);
-                        resolve();
-                     });
-                  });
-               }
+          res.status(200).send({
+             success: true,
+             message: "Event and venue added successfully!",
+             eventId: event_id,
+             venueId: venue_id,
+          });
+       }  catch (err: any) {
+          await connection.rollback();
+          res.status(500).send({
+             success: false,
+             message: err.message || "An error occurred while creating the event.",
+          });
+       } finally {
+          connection.release();
+       }
+    })
+);
 
-               connection!.commit((err) => {
-                  if (err) {
-                     return connection!.rollback(() => {
-                        reject(new Error(err.message));
-                     });
-                  }
-                  res.status(200).send({
-                     success: true,
-                     message: 'Event and Venue added successfully!',
-                     eventId: venueResult.insertId,
-                     venueId: venue_id
-                  });
-                  resolve();
-               });
-            } catch (err: any) {
-               return connection!.rollback(() => {
-                  reject(new Error(err.message));
-               });
-            }
-         });
-      });
+router.put(
+    "/update_event/:id",
+    controllersWrapper(async (req: Request, res: Response) => {
+       const event_id: number = Number(req.params.id);
 
-   } catch (err: any) {
-      res.status(500).send({
-         status: 500,
-         success: false,
-         message: err?.message,
-      });
-   } finally {
-      if (connection) {
-         connection.release();
-      }
-   }
-}));
+       if (isNaN(event_id)) {
+          return res
+              .status(400)
+              .send({ status: 400, success: false, message: "Invalid event ID" });
+       }
 
-router.put("/update_event/:id", controllersWrapper(async (req: Request, res: Response) => {
-   const event_id: number = Number(req.params.id);
+       const {
+          venue_name,
+          address,
+          city,
+          capacity,
+          event_name,
+          event_date,
+          category,
+          description = "",
+          ticket_price,
+          available_tickets,
+          isAvailable,
+          capacity_event,
+       } = req.body;
 
-   if (isNaN(event_id)) {
-      return res.status(400).send({ status: 400, success: false, message: 'Invalid event ID' });
-   }
+       if (
+           !venue_name ||
+           !address ||
+           !city ||
+           !capacity ||
+           !event_name ||
+           !event_date ||
+           !category ||
+           !ticket_price ||
+           !available_tickets ||
+           !capacity_event
+       ) {
+          return res.status(400).send({
+             success: false,
+             message: "All required fields must be filled: venue_name, address, city, capacity, event_name, event_date, category, ticket_price, available_tickets, and capacity_event.",
+          });
+       }
 
-   const {
-      venue_name,
-      address,
-      city,
-      capacity,
-      event_name,
-      event_date,
-      category,
-      description = '',
-      ticket_price,
-      available_tickets,
-      isAvailable, // Добавлено новое поле
-   } = req.body;
+       if (Number(capacity_event) > Number(capacity)) {
+          return res.status(400).send({
+             success: false,
+             message: "Event capacity cannot exceed venue capacity.",
+          });
+       }
 
-   const categoryLower = category.trim().toLowerCase();
-   const checkCategoryQuery = `SELECT category_id FROM categories WHERE LOWER(category_name) = ?`;
+       if (Number(available_tickets) > Number(capacity_event)) {
+          return res.status(400).send({
+             success: false,
+             message: "Available tickets cannot exceed event capacity.",
+          });
+       }
 
-   let connection: PoolConnection | null = null;
+       const categoryLower = category.trim().toLowerCase();
+       const checkCategoryQuery = `SELECT category_id FROM categories WHERE LOWER(category_name) = ?`;
 
-   try {
-      connection = await getConnection();
+       let connection = null;
 
-      const [categoryRows] = await new Promise<any[]>((resolve, reject) => {
-         connection!.query(checkCategoryQuery, [categoryLower], (err, results) => {
-            if (err) return reject(err);
-            resolve(results);
-         });
-      });
+       try {
+          connection = await getConnection();
 
-      if (categoryRows.length === 0) {
-         return res.status(400).send({
-            status: 400,
-            success: false,
-            message: 'Invalid category',
-         });
-      }
+          const [categoryRows] = await connection.query<any>(checkCategoryQuery, [
+             categoryLower,
+          ]);
 
-      const categoryId = categoryRows.category_id;
+          if ( categoryRows && categoryRows.length === 0) {
+             return res.status(400).send({
+                status: 400,
+                success: false,
+                message: "Invalid category",
+             });
+          }
 
-      const checkEventQuery = `
-            SELECT * FROM events 
-            JOIN venues ON events.venue_id = venues.venue_id
-            WHERE event_id != ? 
-            AND event_name = ? 
-            AND event_date = ? 
-            AND venue_name = ? 
-            AND address = ? 
-            AND city = ?
-        `;
+          const categoryId = categoryRows[0].category_id;
 
-      const [eventRows] = await new Promise<any[]>((resolve, reject) => {
-         connection!.query(checkEventQuery, [event_id, event_name, event_date, venue_name, address, city], (err, results) => {
-            if (err) return reject(err);
-            resolve(results);
-         });
-      });
+          const checkEventQuery = `
+                SELECT * FROM events 
+                JOIN venues ON events.venue_id = venues.venue_id
+                WHERE event_id != ? 
+                  AND event_name = ? 
+                  AND event_date = ? 
+                  AND venue_name = ? 
+                  AND address = ? 
+                  AND city = ?
+            `;
 
-      if (eventRows && eventRows.length > 0) {
-         return res.status(409).send({
-            status: 409,
-            success: false,
-            message: 'Event with the same name, date, and venue already exists',
-         });
-      }
+          const [eventRows] = await connection.query<any>(checkEventQuery, [
+             event_id,
+             event_name,
+             event_date,
+             venue_name,
+             address,
+             city,
+          ]);
 
-      const updateVenueQuery = `
-            UPDATE venues 
-            SET venue_name = ?, address = ?, city = ?, capacity = ? 
-            WHERE venue_id = (SELECT venue_id FROM events WHERE event_id = ?)
-        `;
+          if (eventRows.length > 0) {
+             return res.status(409).send({
+                status: 409,
+                success: false,
+                message:
+                    "Event with the same name, date, and venue already exists",
+             });
+          }
 
-      const updateEventQuery = `
-            UPDATE events 
-            SET event_name = ?, event_date = ?, category_id = ?, description = ?, ticket_price = ?, available_tickets = ?, isAvailable = ?
-            WHERE event_id = ?
-        `;
+          const checkVenueCapacityQuery = `
+                SELECT capacity FROM venues
+                JOIN events ON events.venue_id = venues.venue_id
+                WHERE event_id = ?
+            `;
 
-      await new Promise<void>((resolve, reject) => {
-         connection!.beginTransaction(async (err) => {
-            if (err) return reject(err);
+          const [venueRows] = await connection.query<any>(checkVenueCapacityQuery, [
+             event_id,
+          ]);
 
-            try {
-               await new Promise<void>((resolve, reject) => {
-                  connection!.query(updateVenueQuery, [venue_name, address, city, capacity, event_id], (err, result) => {
-                     if (err) return reject(err);
-                     resolve();
-                  });
-               });
+          if (venueRows && venueRows.length === 0) {
+             return res.status(400).send({
+                status: 400,
+                success: false,
+                message: "Venue not found",
+             });
+          }
 
-               await new Promise<void>((resolve, reject) => {
-                  // Вставка isAvailable в запрос обновления события
-                  connection!.query(updateEventQuery, [event_name, event_date, categoryId, description, ticket_price, available_tickets, isAvailable, event_id], (err, result) => {
-                     if (err) return reject(err);
-                     resolve();
-                  });
-               });
+          const venueCapacity = venueRows[0].capacity;
 
-               connection!.commit((err) => {
-                  if (err) {
-                     return connection!.rollback(() => {
-                        reject(new Error(err.message));
-                     });
-                  }
+          if (capacity_event > venueCapacity) {
+             return res.status(400).send({
+                status: 400,
+                success: false,
+                message: "Event capacity cannot exceed venue capacity",
+             });
+          }
 
-                  res.status(200).send({
-                     success: true,
-                     message: 'Event and Venue updated successfully!',
-                     status: 200,
-                  });
-                  resolve();
-               });
-            } catch (err: any) {
-               return connection!.rollback(() => {
-                  reject(new Error(err.message));
-               });
-            }
-         });
-      });
+          const updateVenueQuery = `
+                UPDATE venues 
+                SET venue_name = ?, address = ?, city = ?, capacity = ? 
+                WHERE venue_id = (SELECT venue_id FROM events WHERE event_id = ?)
+            `;
 
-   } catch (err) {
-      res.status(500).send({
-         status: 500,
-         success: false,
-         message: 'Internal Server Error',
-      });
-   } finally {
-      if (connection) {
-         connection.release();
-      }
-   }
-}));
+          const updateEventQuery = `
+                UPDATE events 
+                SET event_name = ?, event_date = ?, category_id = ?, description = ?, ticket_price = ?, available_tickets = ?, isAvailable = ?, capacity_event = ?
+                WHERE event_id = ?
+            `;
 
-router.delete("/delete_event/:id", controllersWrapper(async (req: Request, res: Response) => {
-   const event_id: number = Number(req.params.id);
+          await connection.beginTransaction();
 
-   if (isNaN(event_id)) {
-      return res.status(400).send({ status: 400, success: false, message: 'Invalid event ID' });
-   }
+          await connection.query(updateVenueQuery, [
+             venue_name,
+             address,
+             city,
+             capacity,
+             event_id,
+          ]);
 
-   let connection: PoolConnection | null = null;
+          await connection.query(updateEventQuery, [
+             event_name,
+             event_date,
+             categoryId,
+             description,
+             ticket_price,
+             available_tickets,
+             isAvailable,
+             capacity_event,
+             event_id,
+          ]);
 
-   try {
-      connection = await getConnection();
-      await new Promise<void>((resolve, reject) => {
-         connection!.beginTransaction(async (err) => {
-            if (err) return reject(new Error(err.message));
+          await connection.commit();
 
-            try {
-               const getVenueIdQuery = `SELECT venue_id FROM events WHERE event_id = ?`;
-               const [result] = await new Promise<any[]>((resolve, reject) => {
-                  connection!.query(getVenueIdQuery, [event_id], (err, results) => {
-                     if (err) return reject(err);
-                     resolve(results);
-                  });
-               });
+          res.status(200).send({
+             success: true,
+             message: "Event and Venue updated successfully!",
+             status: 200,
+          });
+       } catch (err) {
+          if (connection) {
+             await connection.rollback();
+          }
 
-               if (result && result.length === 0) {
-                  return connection!.rollback(() => {
-                     reject(new Error('Event not found'));
-                  });
-               }
+          res.status(500).send({
+             status: 500,
+             success: false,
+             message: "Internal Server Error",
+          });
+       } finally {
+          if (connection) {
+             await connection.release();
+          }
+       }
+    })
+);
 
-               const venue_id = result.venue_id;
-               
-               const deleteEventQuery = `DELETE FROM events WHERE event_id = ?`;
-               await new Promise<void>((resolve, reject) => {
-                  connection!.query(deleteEventQuery, [event_id], (err) => {
-                     if (err) return reject(err);
-                     resolve();
-                  });
-               });
+router.delete(
+    "/delete_event/:id",
+    controllersWrapper(async (req: Request, res: Response) => {
+       const event_id: number = Number(req.params.id);
 
-               const checkVenueUsageQuery = `SELECT COUNT(*) AS count FROM events WHERE venue_id = ?`;
-               const [usageResult] = await new Promise<any[]>((resolve, reject) => {
-                  connection!.query(checkVenueUsageQuery, [venue_id], (err, results) => {
-                     if (err) return reject(err);
-                     resolve(results);
-                  });
-               });
+       if (isNaN(event_id)) {
+          return res
+              .status(400)
+              .send({ status: 400, success: false, message: "Invalid event ID" });
+       }
 
-               if (usageResult.count === 0) {
-                  const deleteVenueQuery = `DELETE FROM venues WHERE venue_id = ?`;
-                  await new Promise<void>((resolve, reject) => {
-                     connection!.query(deleteVenueQuery, [venue_id], (err) => {
-                        if (err) return reject(err);
-                        resolve();
-                     });
-                  });
-               }
+       const connection = await getConnection();
 
-               connection!.commit((err) => {
-                  if (err) {
-                     return connection!.rollback(() => {
-                        reject(new Error(err.message));
-                     });
-                  }
+       try {
+          await connection.beginTransaction();
 
-                  res.status(200).send({
-                     success: true,
-                     message: 'Event deleted successfully!',
-                     status: 200
-                  });
-                  resolve();
-               });
-            } catch (err: any) {
-               return connection!.rollback(() => {
-                  reject(new Error(err.message));
-               });
-            }
-         });
-      });
+          const [venueResult] = await connection.query<any[]>(
+              `SELECT venue_id FROM events WHERE event_id = ?`,
+              [event_id]
+          );
 
-   } catch (err: any) {
-      if (err.message === 'Event not found') {
-         return res.status(404).send({
-            status: 404,
-            success: false,
-            message: err.message,
-         });
-      }
-      res.status(500).send({
-         status: 500,
-         success: false,
-         message: 'Internal Server Error',
-      });
-   } finally {
-      if (connection) {
-         connection.release();
-      }
-   }
-}));
+          if (venueResult && venueResult.length === 0) {
+             await connection.rollback();
+             return res.status(404).send({
+                status: 404,
+                success: false,
+                message: "Event not found",
+             });
+          }
 
-router.get("/all_tickets", controllersWrapper(async (req: Request, res: Response) => {
-   const getAllTicketsQuery = `
+          const venue_id = venueResult[0].venue_id;
+
+          await connection.query(`DELETE FROM events WHERE event_id = ?`, [
+             event_id,
+          ]);
+
+          const [usageResult] = await connection.query<any[]>(
+              `SELECT COUNT(*) AS count FROM events WHERE venue_id = ?`,
+              [venue_id]
+          );
+
+          if (usageResult[0].count === 0) {
+             await connection.query(`DELETE FROM venues WHERE venue_id = ?`, [
+                venue_id,
+             ]);
+          }
+
+          await connection.commit();
+
+          res.status(200).send({
+             success: true,
+             message: "Event deleted successfully!",
+             status: 200,
+          });
+       } catch (err: any) {
+          await connection.rollback();
+          if (err.message === "Event not found") {
+             return res.status(404).send({
+                status: 404,
+                success: false,
+                message: err.message,
+             });
+          }
+          res.status(500).send({
+             status: 500,
+             success: false,
+             message: "Internal Server Error",
+          });
+       } finally {
+          connection.release();
+       }
+    })
+);
+
+router.get(
+    "/all_tickets",
+    controllersWrapper(async (req: Request, res: Response) => {
+       const getAllTicketsQuery = `
         SELECT
             t.ticket_id,
             t.event_id,
@@ -413,6 +435,7 @@ router.get("/all_tickets", controllersWrapper(async (req: Request, res: Response
             e.event_name,
             e.category_id,
             e.event_date,
+            e.capacity_event,
             e.ticket_price,
             e.isAvailable,
             c.category_name,
@@ -420,104 +443,82 @@ router.get("/all_tickets", controllersWrapper(async (req: Request, res: Response
             u.user_lastname,
             u.email
         FROM tickets t
-                 JOIN events e ON t.event_id = e.event_id
-                 JOIN users u ON t.user_id = u.user_id
-                 JOIN categories c ON c.category_id = e.category_id
+        JOIN events e ON t.event_id = e.event_id
+        JOIN users u ON t.user_id = u.user_id
+        JOIN categories c ON c.category_id = e.category_id
     `;
 
-   let connection: PoolConnection | null = null;
+       const connection = await getConnection();
 
-   try {
-      connection = await getConnection();
+       try {
+          const [tickets] = await connection.query<any[]>(getAllTicketsQuery);
 
-      if (!connection) {
-         throw new Error("Failed to establish database connection.");
-      }
+          if (!tickets.length) {
+             return res.status(404).send({
+                status: 404,
+                success: false,
+                message: "No tickets found.",
+             });
+          }
 
-      const tickets = await new Promise<any[]>((resolve, reject) => {
-         connection!.query(getAllTicketsQuery, (err, results) => {
-            if (err) return reject(err);
-            resolve(results);
-         });
-      });
+          res.status(200).send({
+             status: 200,
+             success: true,
+             data: tickets,
+          });
+       } catch (err) {
+          res.status(500).send({
+             status: 500,
+             success: false,
+             message: "Internal Server Error",
+          });
+       } finally {
+          connection.release();
+       }
+    })
+);
 
-      if (tickets && tickets.length === 0) {
-         return res.status(404).send({
-            status: 404,
-            success: false,
-            message: 'No tickets found.',
-         });
-      }
 
-      res.status(200).send({
-         status: 200,
-         success: true,
-         data: tickets,
-      });
-
-   } catch (err) {
-      res.status(500).send({
-         status: 500,
-         success: false,
-         message: 'Internal Server Error',
-      });
-   } finally {
-      if (connection) {
-         connection.release();
-      }
-   }
-}));
-
-router.get("/all_users", controllersWrapper(async (req: Request, res: Response) => {
-   const getAllUsersQuery = `
+router.get(
+    "/all_users",
+    controllersWrapper(async (req: Request, res: Response) => {
+       const getAllUsersQuery = `
         SELECT
             u.user_firstname,
             u.user_lastname,
-            u.email, u.verify
+            u.email,
+            u.verify
         FROM users u
     `;
 
-   let connection: PoolConnection | null = null;
+       const connection = await getConnection();
 
-   try {
-      connection = await getConnection();
+       try {
+          const [users] = await connection.query<any[]>(getAllUsersQuery);
 
-      if (!connection) {
-         throw new Error("Failed to establish database connection.");
-      }
+          if (!users.length) {
+             return res.status(404).send({
+                status: 404,
+                success: false,
+                message: "No users found.",
+             });
+          }
 
-      const users = await new Promise<any[]>((resolve, reject) => {
-         connection!.query(getAllUsersQuery, (err, results) => {
-            if (err) return reject(err);
-            resolve(results);
-         });
-      });
-
-      if (users && users.length === 0) {
-         return res.status(404).send({
-            status: 404,
-            success: false,
-            message: 'No users found.',
-         });
-      }
-
-      res.status(200).send({
-         status: 200,
-         success: true,
-         data: users,
-      });
-
-   } catch (err) {
-      res.status(500).send({
-         status: 500,
-         success: false,
-         message: 'Internal Server Error',
-      });
-   } finally {
-      if (connection) {
-         connection.release();
-      }
-   }
-}));
+          res.status(200).send({
+             status: 200,
+             success: true,
+             data: users,
+          });
+       } catch (err) {
+          res.status(500).send({
+             status: 500,
+             success: false,
+             message: "Internal Server Error",
+          });
+       } finally {
+          connection.release();
+       }
+    })
+);
 
 export default router;

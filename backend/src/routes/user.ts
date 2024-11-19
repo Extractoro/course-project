@@ -6,8 +6,6 @@ import transporter from "../utils/emailSender";
 import bcrypt from "bcrypt";
 import {getConnection} from "../utils/database";
 import { v4 as uuidv4 } from 'uuid';
-import jwt, {JwtPayload} from "jsonwebtoken";
-import {PoolConnection} from "mysql";
 
 dotenv.config();
 const router = Router();
@@ -15,44 +13,18 @@ const router = Router();
 router.use(authMiddleware)
 
 router.get("/current/:userId", controllersWrapper(async (req: Request, res: Response) => {
-    // const authHeader = req.headers.authorization ?? "";
-    // const [tokenType, token] = authHeader.split(" ");
-    //
-    // if (!token || !tokenType) {
-    //     return res.status(401).send({
-    //         status: 401,
-    //         success: false,
-    //         message: "No token provided or invalid token!"
-    //     });
-    // }
+    const { userId } = req.params;
 
-    const {userId} = req.params;
-
-    let connection: PoolConnection | null = null;
+    const connection = await getConnection();
 
     try {
-        // const decoded = jwt.decode(token) as JwtPayload;
-        //
-        // if (!decoded || typeof decoded === 'string' || !decoded.email) {
-        //     return res.status(401).send({
-        //         status: 401,
-        //         success: false,
-        //         message: 'Invalid token!',
-        //     });
-        // }
 
-        connection = await getConnection();
+        const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, phone, role, verify 
+                          FROM users WHERE user_id = ?`;
 
-        const sqlQuery = `SELECT user_id, user_firstname, user_lastname, email, phone, role, verify FROM users WHERE user_id = ?`;
+        const [user] = await connection.query<any>(sqlQuery, [userId]);
 
-        const user = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(sqlQuery, [userId], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
-
-        if (user.length === 0) {
+        if (user && user.length === 0) {
             return res.status(404).send({
                 status: 404,
                 success: false,
@@ -67,6 +39,7 @@ router.get("/current/:userId", controllersWrapper(async (req: Request, res: Resp
         });
 
     } catch (err) {
+        console.error(err);
         res.status(500).send({
             status: 500,
             success: false,
@@ -88,20 +61,13 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
 
     const { firstname, lastname, phone, email, password } = req.body;
 
-    let connection: PoolConnection | null = null;
+    const connection = await getConnection();
 
     try {
-        connection = await getConnection();
-
         const getUserQuery = `SELECT email FROM users WHERE user_id = ?`;
-        const [user] = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(getUserQuery, [user_id], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+        const [user] = await connection.query<any>(getUserQuery, [user_id]);
 
-        if (!user) {
+        if (user && user.length === 0) {
             return res.status(404).send({
                 status: 404,
                 success: false,
@@ -109,7 +75,7 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
             });
         }
 
-        const oldEmail = user.email;
+        const oldEmail = user[0].email;
         const emailChanged = oldEmail !== email;
         let verificationToken = emailChanged ? uuidv4() : null;
 
@@ -124,19 +90,14 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
             SET user_firstname = ?, user_lastname = ?, email = ?, phone = ?, 
                 password = COALESCE(?, password), 
                 verificationToken = COALESCE(?, verificationToken), 
-                verify = ?
+                verify = ? 
             WHERE user_id = ?
         `;
 
-        const result = await new Promise<any>((resolve, reject) => {
-            connection!.query(updateUserQuery, [
-                firstname, lastname, email, phone, hashedPassword,
-                verificationToken, emailChanged ? 0 : 1, user_id
-            ], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+        const [result] = await connection.query<any>(updateUserQuery, [
+            firstname, lastname, email, phone, hashedPassword,
+            verificationToken, emailChanged ? 0 : 1, user_id
+        ]);
 
         if (result && result.affectedRows === 0) {
             return res.status(404).send({
@@ -159,58 +120,58 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>Email Confirmation - EventNest</title>
                         <style>
-                             body {
-                              font-family: Arial, sans-serif;
-                              background-color: #f4f4f4;
-                              margin: 0;
-                              padding: 0;
-                           }
-                           .container {
-                              width: 100%;
-                              padding: 20px;
-                              background-color: #f4f4f4;
-                           }
-                           .content {
-                              max-width: 600px;
-                              margin: 0 auto;
-                              background-color: #ffffff;
-                              padding: 20px;
-                              border-radius: 8px;
-                              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                           }
-                           .header {
-                              text-align: center;
-                              margin-bottom: 20px;
-                           }
-                           .header h1 {
-                              color: #333;
-                           }
-                           .button {
-                              display: inline-block;
-                              color: white !important; 
-                              background-color: #1abc9c; 
-                              padding: 10px 20px;
-                              text-decoration: none;
-                              border-radius: 5px;
-                              font-size: 16px;
-                              transition: background-color 0.8s ease;
-                           }
-                           .button:hover {
-                              background-color: #16a085;
-                           }
-                           .footer {
-                              text-align: center;
-                              margin-top: 20px;
-                              color: #777;
-                              font-size: 12px;
-                           }
+                            body {
+                                font-family: Arial, sans-serif;
+                                background-color: #f4f4f4;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .container {
+                                width: 100%;
+                                padding: 20px;
+                                background-color: #f4f4f4;
+                            }
+                            .content {
+                                max-width: 600px;
+                                margin: 0 auto;
+                                background-color: #ffffff;
+                                padding: 20px;
+                                border-radius: 8px;
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                            }
+                            .header {
+                                text-align: center;
+                                margin-bottom: 20px;
+                            }
+                            .header h1 {
+                                color: #333;
+                            }
+                            .button {
+                                display: inline-block;
+                                color: white !important; 
+                                background-color: #1abc9c; 
+                                padding: 10px 20px;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                font-size: 16px;
+                                transition: background-color 0.8s ease;
+                            }
+                            .button:hover {
+                                background-color: #16a085;
+                            }
+                            .footer {
+                                text-align: center;
+                                margin-top: 20px;
+                                color: #777;
+                                font-size: 12px;
+                            }
                         </style>
                     </head>
                     <body>
                         <div>
                             <p>Hello, ${firstname} ${lastname}!</p>
                             <p>It looks like you've changed your email for your EventNest account. Please confirm your new email address by clicking the button below.</p>
-                            <a href="${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}">Confirm Email</a>
+                            <a href="${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}" class="button">Confirm Email</a>
                             <p>If the button doesn't work, copy and paste the following URL into your browser's address bar:</p>
                             <p>${process.env.CLIENT_URL}/auth/registration_confirm/${verificationToken}</p>
                             <p>Best regards,<br>The EventNest Team</p>
@@ -228,6 +189,7 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
         });
 
     } catch (err) {
+        console.error(err);
         res.status(500).send({
             status: 500,
             success: false,
@@ -239,7 +201,5 @@ router.put("/update_user/:id", controllersWrapper(async (req: Request, res: Resp
         }
     }
 }));
-
-
 
 export default router;

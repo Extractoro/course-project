@@ -3,8 +3,6 @@ import {Request, Response, Router} from "express";
 import authMiddleware from "../middlewares/authMiddleware";
 import controllersWrapper from "../helpers/controllersWrapper";
 import {getConnection} from "../utils/database";
-import {PoolConnection} from "mysql";
-import cron from 'node-cron'
 
 dotenv.config();
 const router = Router();
@@ -28,30 +26,26 @@ router.post("/book_tickets", controllersWrapper(async (req: Request, res: Respon
 
     const getEventQuery = `SELECT available_tickets FROM events WHERE event_id = ?`;
 
-    let connection: PoolConnection | null = null;
+    const connection = await getConnection();
 
     try {
-        connection = await getConnection();
-
-        const availableTickets = await new Promise<number>((resolve, reject) => {
-            connection!.query(getEventQuery, [event_id], (err, result) => {
-                if (err) return reject(err);
-                if (result.length === 0) return reject(new Error('Event not found'));
-                resolve(result[0].available_tickets);
+        const [eventResult] = await connection.query<any[]>(getEventQuery, [event_id]);
+        if (!eventResult || eventResult.length === 0) {
+            return res.status(404).send({
+                status: 404,
+                success: false,
+                message: 'Event not found',
             });
-        });
+        }
+
+        const availableTickets = eventResult[0].available_tickets;
 
         if (availableTickets < quantity) {
             return res.status(400).send({ status: 400, success: false, message: 'Not enough available tickets' });
         }
 
         const userTicketsQuery = `SELECT COUNT(*) AS ticket_count FROM tickets WHERE user_id = ? AND event_id = ?`;
-        const [userResult] = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(userTicketsQuery, [user_id, event_id], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+        const [userResult] = await connection.query<any[]>(userTicketsQuery, [user_id, event_id]);
 
         const userTicketCount = userResult[0]?.ticket_count || 0;
         const totalTicketsAllowed = Math.max(Math.floor((availableTickets + userTicketCount) * 0.05), 1);
@@ -65,26 +59,17 @@ router.post("/book_tickets", controllersWrapper(async (req: Request, res: Respon
             });
         }
 
-        await new Promise<void>((resolve, reject) => {
-            const insertTicketQuery = `INSERT INTO tickets (event_id, user_id, ticket_status) VALUES (?, ?, 'booked')`;
-            const ticketPromises = Array.from({ length: quantity }, (_, i) => {
-                return new Promise<void>((res, rej) => {
-                    connection!.query(insertTicketQuery, [event_id, user_id], (err) => {
-                        if (err) return rej(err);
-                        res();
-                    });
-                });
-            });
-            Promise.all(ticketPromises).then(() => resolve()).catch(reject);
+        const insertTicketQuery = `INSERT INTO tickets (event_id, user_id, ticket_status) VALUES (?, ?, 'booked')`;
+
+        const ticketPromises = Array.from({ length: quantity }, () => {
+            return connection.query(insertTicketQuery, [event_id, user_id]);
         });
 
+        await Promise.all(ticketPromises);
+
+
         const updateTicketsQuery = `UPDATE events SET available_tickets = available_tickets - ? WHERE event_id = ?`;
-        await new Promise<void>((resolve, reject) => {
-            connection!.query(updateTicketsQuery, [quantity, event_id], (err) => {
-                if (err) return reject(err);
-                resolve();
-            });
-        });
+        await connection.query(updateTicketsQuery, [quantity, event_id]);
 
         res.status(200).send({
             status: 200,
@@ -98,33 +83,8 @@ router.post("/book_tickets", controllersWrapper(async (req: Request, res: Respon
             success: false,
             message: err.message,
         });
-    } finally {
-        if (connection) {
-            connection.release();
-        }
     }
 }));
-
-cron.schedule('0 * * * *', async () => {
-    const deleteQuery = `DELETE FROM tickets WHERE ticket_status = 'booked' AND purchase_date <= UTC_TIMESTAMP() - INTERVAL 1 HOUR;`;
-    let connection: PoolConnection | null = null;
-    try {
-        connection = await getConnection();
-        await new Promise<void>((resolve, reject) => {
-            connection!.query(deleteQuery, (err) => {
-                if (err) return reject(err);
-                resolve();
-            });
-        });
-        console.log('Unpurchased tickets deleted successfully.');
-    } catch (err) {
-        console.error('Error deleting unpurchased tickets:', err);
-    } finally {
-        if (connection) {
-            connection.release();
-        }
-    }
-});
 
 router.post("/pay_tickets", controllersWrapper(async (req: Request, res: Response) => {
     const { user_id, quantity, event_id } = req.body;
@@ -145,21 +105,15 @@ router.post("/pay_tickets", controllersWrapper(async (req: Request, res: Respons
         });
     }
 
-    let connection: PoolConnection | null = null;
+    const connection = await getConnection();
 
     try {
-        connection = await getConnection();
-
         const getBookedTicketsQuery = `
             SELECT ticket_id FROM tickets 
             WHERE user_id = ? AND event_id = ? AND ticket_status = 'booked' 
             LIMIT ?`;
-        const bookedTickets = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(getBookedTicketsQuery, [user_id, event_id, quantity], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+
+        const [bookedTickets] = await connection.query<any[]>(getBookedTicketsQuery, [user_id, event_id, quantity]);
 
         if (bookedTickets.length < quantity) {
             return res.status(400).send({
@@ -173,14 +127,10 @@ router.post("/pay_tickets", controllersWrapper(async (req: Request, res: Respons
             UPDATE tickets 
             SET ticket_status = 'paid' 
             WHERE ticket_id IN (?)`;
+
         const ticketIds = bookedTickets.map(ticket => ticket.ticket_id);
 
-        await new Promise<void>((resolve, reject) => {
-            connection!.query(updateTicketStatusQuery, [ticketIds], (err) => {
-                if (err) return reject(err);
-                resolve();
-            });
-        });
+        await connection.query(updateTicketStatusQuery, [ticketIds]);
 
         res.status(200).send({
             status: 200,
@@ -195,9 +145,7 @@ router.post("/pay_tickets", controllersWrapper(async (req: Request, res: Respons
             message: err.message,
         });
     } finally {
-        if (connection) {
-            connection.release();
-        }
+        connection.release();
     }
 }));
 
@@ -226,54 +174,40 @@ router.post("/return_tickets", controllersWrapper(async (req: Request, res: Resp
         WHERE event_id = ?
     `;
 
-    let connection: PoolConnection | null = null;
+    const connection = await getConnection();
 
     try {
-        connection = await getConnection();
         await connection.beginTransaction();
 
-        const [result] = await new Promise<any[]>((resolve, reject) => {
-            connection!.query(getUserTicketsQuery, [user_id, event_id], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-            });
-        });
+        const [result] = await connection.execute<any[]>(getUserTicketsQuery, [user_id, event_id]);
 
-        const bookedTickets = result?.booked_tickets || 0;
+        const bookedTickets = result[0]?.booked_tickets || 0;
 
         if (quantity > bookedTickets) {
             throw new Error(`You cannot return more tickets than you have booked. You have only ${bookedTickets} tickets booked.`);
         }
 
-        await new Promise<void>((resolve, reject) => {
-            connection!.query(deleteTicketQuery, [user_id, event_id, quantity], (err) => {
-                if (err) return reject(err);
-                resolve();
-            });
-        });
+        await connection.query(deleteTicketQuery, [user_id, event_id, quantity]);
 
-        await new Promise<void>((resolve, reject) => {
-            connection!.query(updateTicketsQuery, [quantity, event_id], (err) => {
-                if (err) return reject(err);
-                resolve();
-            });
-        });
+        await connection.query(updateTicketsQuery, [quantity, event_id]);
 
         await connection.commit();
+
         res.status(200).send({
             status: 200,
             success: true,
             message: 'Tickets returned successfully!',
         });
+
     } catch (error: any) {
-        if (connection) await connection.rollback();
+        await connection.rollback();
         res.status(500).send({
             status: 500,
             success: false,
             message: error.message,
         });
     } finally {
-        if (connection) connection.release();
+        connection.release();
     }
 }));
 
