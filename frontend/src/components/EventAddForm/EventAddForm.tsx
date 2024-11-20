@@ -128,6 +128,13 @@ const EventAddForm = () => {
             return;
         }
 
+        if (formData.availableTickets > formData.capacity) {
+            toast.error('Available tickets cannot exceed venue capacity!', {
+                autoClose: 2000,
+            });
+            return;
+        }
+
         const eventPayload = {
             venue_name: formData.venueName,
             address: formData.address,
@@ -155,7 +162,12 @@ const EventAddForm = () => {
             });
             resetForm();
         } catch (err: any) {
-            toast.error('Something went wrong', {
+            const errorMessage =
+                (err as any)?.message ||
+                (err as any)?.data?.message ||
+                'An unexpected error occurred.';
+
+            toast.error(`${errorMessage}`, {
                 autoClose: 2000,
             });
         }

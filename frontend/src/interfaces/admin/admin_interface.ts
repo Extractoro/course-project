@@ -3,6 +3,7 @@ export interface AdminRequestInterface {
     address: string;
     city: string;
     capacity: number;
+    capacity_event?: number;
     event_id?: number;
     event_name: string;
     event_date: string;
@@ -11,11 +12,11 @@ export interface AdminRequestInterface {
     ticket_price: number;
     available_tickets: number;
     isAvailable: boolean;
-    isRecurring: boolean;
-    frequency: string;
-    repeat_interval: number;
-    start_date: string;
-    end_date: string;
+    isRecurring?: boolean;
+    frequency?: string;
+    repeat_interval?: number;
+    start_date?: string;
+    end_date?: string;
 }
 
 export interface AdminDeleteRequestInterface {

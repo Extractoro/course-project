@@ -32,6 +32,7 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
         address: eventById?.address || '',
         city: eventById?.city || '',
         capacity: eventById?.capacity || 1,
+        capacity_event: eventById?.capacity_event || 1,
         eventName: eventById?.event_name || '',
         eventDate: eventById?.event_date || '',
         category: categoryName || '',
@@ -46,6 +47,7 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
         {name: 'address', label: 'Address *', type: 'text', required: true},
         {name: 'city', label: 'City *', type: 'text', required: true},
         {name: 'capacity', label: 'Capacity *', type: 'number', min: 1, required: true},
+        {name: 'capacity_event', label: 'Event capacity *', type: 'number', min: 1, required: true},
         {name: 'eventName', label: 'Event Name *', type: 'text', required: true},
         {name: 'eventDate', label: 'Event Date *', type: 'date', minDate: new Date().toISOString().split('T')[0], required: true},
         {name: 'description', label: 'Description', type: 'text', required: false},
@@ -91,6 +93,7 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
                 address: formData.address,
                 city: formData.city,
                 capacity: formData.capacity,
+                capacity_event: formData.capacity_event,
                 event_id: Number(eventById?.event_id),
                 event_name: formData.eventName,
                 event_date: formData.eventDate,
@@ -106,8 +109,13 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
             });
             navigate('/');
             resetForm();
-        } catch (err: any) {
-            toast.error('Something went wrong', {
+        } catch (err) {
+            const errorMessage =
+                (err as any)?.message ||
+                (err as any)?.data?.message ||
+                'An unexpected error occurred.';
+
+            toast.error(`${errorMessage}`, {
                 autoClose: 2000,
             });
         }
@@ -125,7 +133,8 @@ const TicketsFormEdit: FC<TicketsFormEditProps> = ({eventById, categoryName}) =>
             description: '',
             ticketPrice: 0,
             availableTickets: 1,
-            isAvailable: true // Reset isAvailable
+            isAvailable: true,
+            capacity_event: 1
         });
     };
 

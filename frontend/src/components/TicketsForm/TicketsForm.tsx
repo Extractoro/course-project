@@ -52,11 +52,14 @@ const TicketsForm: FC<TicketsFormProps> = ({eventId, userData, availableTicketsS
                 reset();
             }
         } catch (err: any) {
-            if (err.data?.message) {
-                toast.error(`Something went wrong!`, {
-                    autoClose: 2000,
-                });
-            }
+            const errorMessage =
+                (err as any)?.message ||
+                (err as any)?.data?.message ||
+                'An unexpected error occurred.';
+
+            toast.error(`${errorMessage}`, {
+                autoClose: 2000,
+            });
         }
     };
 

@@ -140,7 +140,7 @@ const UserTickets = () => {
                                                         <p className='user__tickets-paragraph'>Ticket
                                                             status: {ticket.ticket_status}</p>
                                                         <p className='user__tickets-paragraph'>Price:
-                                                            ${ticket.ticket_price.toFixed(2)}</p>
+                                                            ${Number(ticket.ticket_price).toFixed(2)}</p>
                                                     </div>
                                                 ))}
                                             </div>

@@ -31,11 +31,14 @@ const ForgetPasswordForm = () => {
             });
             reset();
         } catch (err: any) {
-            if (err.data?.message) {
-                toast.error(`${err.data?.message}`, {
-                    autoClose: 2000,
-                });
-            }
+            const errorMessage =
+                (err as any)?.message ||
+                (err as any)?.data?.message ||
+                'An unexpected error occurred.';
+
+            toast.error(`${errorMessage}`, {
+                autoClose: 2000,
+            });
         }
     };
 

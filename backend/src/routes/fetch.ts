@@ -20,7 +20,7 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
             e.description,
             e.ticket_price,
             e.available_tickets,
-            e.capacity_event
+            e.capacity_event,
             e.isAvailable,
             v.venue_id,
             v.venue_name,
@@ -36,6 +36,9 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
     try {
         const [events] = await connection.query<any[]>(getAllEventsQuery);
 
+        console.log(events)
+
+
         res.status(200).send({
             status: 200,
             success: true,
@@ -47,6 +50,7 @@ router.get("/events", controllersWrapper(async (req: Request, res: Response) => 
             status: 500,
             success: false,
             message: 'Internal Server Error',
+            error: err
         });
     } finally {
         connection.release();

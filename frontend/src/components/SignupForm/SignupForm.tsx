@@ -80,7 +80,12 @@ const SignupForm = () => {
             })
             reset();
         } catch (err: any) {
-            toast.error('Something went wrong', {
+            const errorMessage =
+                (err as any)?.message ||
+                (err as any)?.data?.message ||
+                'An unexpected error occurred.';
+
+            toast.error(`${errorMessage}`, {
                 autoClose: 2000,
             });
         }

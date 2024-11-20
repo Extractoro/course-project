@@ -12,6 +12,7 @@ export interface EventData {
     city: string;
     address: string;
     capacity: number;
+    capacity_event?: number
 }
 
 export interface EventResponse {
