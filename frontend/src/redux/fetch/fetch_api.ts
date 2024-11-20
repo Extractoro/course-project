@@ -7,8 +7,8 @@ import {UserTicketsRequest, UserTicketsResponse} from "../../interfaces/fetch/Us
 export const fetchApi = createApi({
     reducerPath: 'fetchApi',
     baseQuery: fetchBaseQuery({
-        // baseUrl: 'https://course-project-3f21a753c743.herokuapp.com',
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'https://course-project-3f21a753c743.herokuapp.com',
+        // baseUrl: 'http://localhost:3000',
         prepareHeaders: (headers) => {
             const token = Cookies.get("token");
             if (token) {
