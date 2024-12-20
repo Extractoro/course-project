@@ -115,7 +115,6 @@ const EventAddForm = () => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log("Form submitted with isRecurring:", formData.isRecurring);
 
         if (!isAdmin) {
             toast.error('You do not have permission to create events.', {

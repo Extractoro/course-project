@@ -63,7 +63,6 @@ const UserTickets = () => {
         ) || [];
         const totalUserTickets = userTickets.length;
 
-        console.log(totalUserTickets)
 
         if (quantity > totalUserTickets) {
             toast.error(`You cannot pay more tickets than you have. You have ${totalUserTickets} booked tickets for this event.`, {
