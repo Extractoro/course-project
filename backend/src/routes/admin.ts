@@ -8,8 +8,8 @@ import {getConnection} from "../utils/database";
 dotenv.config();
 const router = Router();
 
-// router.use(authMiddleware)
-// router.use(adminMiddleware)
+router.use(authMiddleware)
+router.use(adminMiddleware)
 
 router.post(
     "/create_event",
@@ -125,12 +125,19 @@ router.post(
 
           const event_id = eventResult.insertId;
 
-          if (isRecurring && start_date && end_date && frequency) {
-             await connection.query(
-                 `INSERT INTO recurring_events (event_id, frequency, repeat_interval, start_date, end_date) VALUES (?, ?, ?, ?, ?)`,
-                 [event_id, frequency, repeat_interval, start_date, end_date]
-             );
-          }
+           if (isRecurring && start_date && end_date && frequency) {
+               const [recurringResult] = await connection.query<any>(
+                   `INSERT INTO recurring_events (event_id, frequency, repeat_interval, start_date, end_date) VALUES (?, ?, ?, ?, ?)`,
+                   [event_id, frequency, repeat_interval, start_date, end_date]
+               );
+
+               const recurring_event_id = recurringResult.insertId;
+
+               await connection.query(
+                   `UPDATE events SET recurring_event_id = ? WHERE event_id = ?`,
+                   [recurring_event_id, event_id]
+               );
+           }
 
           await connection.commit();
 

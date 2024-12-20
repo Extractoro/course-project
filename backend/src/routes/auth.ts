@@ -27,7 +27,6 @@ router.post(
         const connection = await getConnection();
 
         try {
-            // Проверка существующего пользователя
             const [existingUser] = await connection.query<any>(
                 "SELECT * FROM users WHERE email = ?",
                 [email]
@@ -41,12 +40,10 @@ router.post(
                 });
             }
 
-            // Хэширование пароля и создание токенов
             const hashedPassword = await bcrypt.hash(password, 10);
             const verificationToken = uuidv4();
             const resetPasswordToken = uuidv4();
 
-            // Вставка нового пользователя
             await connection.query(
                 `INSERT INTO users (user_firstname, user_lastname, email, password, phone, verificationToken, resetPasswordToken) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -61,7 +58,6 @@ router.post(
                 ]
             );
 
-            // Отправка email
             await transporter.sendMail({
                 to: email,
                 from: "EventNest <vadym.tytarenko@nure.ua>",

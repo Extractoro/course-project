@@ -122,7 +122,7 @@ const UserTickets = () => {
                                 <div key={eventId} className="user__tickets">
                                     <h3 onClick={() => toggleTicketsVisibility(Number(eventId))}
                                         className='user__tickets-title'>
-                                        {eventName} (ID: {eventId})
+                                        {eventName} ({eventId})
                                     </h3>
                                     {ticketsVisible[Number(eventId)] && (
                                         <div className="user__tickets-container">

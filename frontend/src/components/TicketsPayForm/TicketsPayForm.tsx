@@ -80,7 +80,7 @@ const TicketsPayForm: FC<TicketsReturnFormProps> = ({ userInfo, ticketsInfo }) =
                     <option value="" disabled selected>Выберите событие</option>
                     {uniqueEvents.map(event => (
                         <option key={event.event_id} value={event.event_id}>
-                            {event.event_name} (ID: {event.event_id})
+                            {event.event_name} ({event.event_id})
                         </option>
                     ))}
                 </select>

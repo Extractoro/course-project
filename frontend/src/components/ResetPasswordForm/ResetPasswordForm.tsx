@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
-import { useResetPasswordMutation } from "../../redux/auth/auth_api.ts"; // Adjust the hook to your API
+import { useResetPasswordMutation } from "../../redux/auth/auth_api.ts";
 import { toast } from "react-toastify";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import {useNavigate, useParams} from "react-router-dom";
