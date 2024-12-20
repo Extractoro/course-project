@@ -74,7 +74,7 @@ const UserTickets = () => {
 
         try {
             await payTickets({ user_id: Number(userInfo?.results[0].user_id), quantity, event_id: eventId }).unwrap();
-            toast.success(`Purchased ${quantity} ticket(s) for event ID ${eventId}`, {
+            toast.success(`Purchased ${quantity} ticket(s) for event`, {
                 autoClose: 2000,
             });
             window.location.reload();
@@ -122,7 +122,7 @@ const UserTickets = () => {
                                 <div key={eventId} className="user__tickets">
                                     <h3 onClick={() => toggleTicketsVisibility(Number(eventId))}
                                         className='user__tickets-title'>
-                                        {eventName} ({eventId})
+                                        {eventName}
                                     </h3>
                                     {ticketsVisible[Number(eventId)] && (
                                         <div className="user__tickets-container">
