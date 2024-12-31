@@ -20,7 +20,7 @@ const CategoryDoughnutChart: React.FC<CategoryDoughnutChartProps> = ({ categoryC
         ],
     };
 
-    return <Doughnut data={chartData} />;
+    return <Doughnut data={chartData}  />;
 };
 
 export default CategoryDoughnutChart;
