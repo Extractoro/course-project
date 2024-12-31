@@ -5,7 +5,7 @@ Development of a web platform for booking tickets to events using modern web tec
 
 ## Tech Stack
 
-**Client:** Typescript, React, Redux Toolkit, SASS
+**Client:** Typescript, React, Redux Toolkit (RTK Query), SASS
 
 **Server:** NodeJS, Express, MySQL
 
@@ -54,3 +54,12 @@ The users of the information system are:
 15) Changing the event. ![Screenshot 30](./frontend/readmeScreenshots/image50.png) ![Screenshot 31](./frontend/readmeScreenshots/image51.png) ![Screenshot 32](./frontend/readmeScreenshots/image52.png) ![Screenshot 33](./frontend/readmeScreenshots/image53.png)
 16) Deleting an event. ![Screenshot 34](./frontend/readmeScreenshots/image54.png) ![Screenshot 35](./frontend/readmeScreenshots/image55.png)
 17) Program statistics. ![Screenshot 36](./frontend/readmeScreenshots/image56.png) ![Screenshot 37](./frontend/readmeScreenshots/image57.png)
+
+
+## For self-testing
+1) User:
+   - email: user@gmail.com
+   - password: user
+2)  Admin:
+    - email: admin@gmail.com
+    - password: admin
